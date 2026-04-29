@@ -3,12 +3,13 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use App\Models\Post;
-use App\Policies\PostPolicy;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Post;              // ← ye add karo
+use App\Policies\PostPolicy;      // ← ye add karo
 
 class AuthServiceProvider extends ServiceProvider
 {
-    protected $policies = [
+    protected $policies = [        // ← ye property pehle se hogi, bas isme add karo
         Post::class => PostPolicy::class,
     ];
 

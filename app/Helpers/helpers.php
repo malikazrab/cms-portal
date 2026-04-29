@@ -1,7 +1,7 @@
 <?php
 
 if (!function_exists('generateSlug')) {
-    function generateSlug($string)
+    function generateSlug(string $string)
     {
         $slug = strtolower(trim($string));
         $slug = preg_replace('/[^a-z0-9-]+/', '-', $slug);
