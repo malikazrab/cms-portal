@@ -14,12 +14,20 @@ class DashboardController extends Controller
         $publishedPosts = Post::where('status', 'published')->count();
         $draftPosts = Post::where('status', 'draft')->count();
         $totalPages = Page::count();
+        $publishedPages = Page::where('status', 'published')->count();
+        $draftPages = Page::where('status', 'draft')->count();
+        $latestPages = Page::latest()->take(5)->get();
+        $latestPosts = Post::with('category')->latest()->take(5)->get();
 
         return view('admin.dashboard', compact(
             'totalPosts',
             'publishedPosts',
             'draftPosts',
-            'totalPages'
+            'totalPages',
+            'publishedPages',
+            'draftPages',
+            'latestPages',
+            'latestPosts'
         ));
     }
 }

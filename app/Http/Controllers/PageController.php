@@ -15,7 +15,7 @@ class PageController extends Controller
 
     public function create()
     {
-        return view('admin.pages.create');
+        return view('admin.pages.create', ['page' => null]);
     }
 
     public function store(StorePageRequest $request)
@@ -24,7 +24,7 @@ class PageController extends Controller
             'user_id' => request()->user()->id,       // ✅ Fix 1: proper key add ki
             'title'            => $request->input('title'),  // ✅ Fix 2: input() use kiya
             'slug'             => $request->input('slug'),
-            'content'          => $request->input('content'), // ✅ content missing tha
+            'content'          => $request->input('content') ?? '',
             'status'           => $request->input('status'),
             'template'         => $request->input('template'),
             'meta_title'       => $request->input('meta_title'),
@@ -37,7 +37,7 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        return view('admin.pages.edit', compact('page'));
+        return view('admin.pages.create', compact('page'));
     }
 
     public function update(StorePageRequest $request, Page $page)
@@ -45,7 +45,7 @@ class PageController extends Controller
         $page->update([
             'title'            => $request->input('title'),  // ✅ Fix 3: input() use kiya
             'slug'             => $request->input('slug'),
-            'content'          => $request->input('content'),
+            'content'          => $request->input('content') ?? '',
             'status'           => $request->input('status'),
             'template'         => $request->input('template'),
             'meta_title'       => $request->input('meta_title'),

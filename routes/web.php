@@ -1,46 +1,40 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\MediaController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SlugController;
+use Illuminate\Support\Facades\Route;
 
-// ======================= Admin Routes ========================
+Route::middleware(['auth', 'admin.auth'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::resource('posts', PostController::class)->except(['show']);
+        Route::resource('pages', PageController::class)->except(['show']);
 
-Route::middleware(['auth', 'admin.auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+        Route::resource('media', MediaController::class)->only(['index', 'destroy']);
+        Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
 
+        Route::resource('categories', CategoryController::class)->only(['index', 'store', 'destroy']);
 
-    // ======================= Post Controller Routes ========================
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 
-    Route::resource('posts', PostController::class);
-
-    // ======================= Page Controller Routes ========================
-
-    Route::resource('pages', PageController::class);
-
-    // ======================= Media Controller Routes ========================
-
-    Route::resource('media', MediaController::class);
-    
-    // ======================= Category & Setting Controller Routes ========================
-
-    Route::resource('categories', CategoryController::class)->except(['show', 'edit', 'create']);
-    Route::resource('settings', SettingController::class)->only(['index', 'update']);
-
+        Route::match(['get', 'post'], '/slug', [SlugController::class, 'generate'])->name('slug.generate');
     });
 
-Route::get('/', function () {
-    return view('welcome');
-});
-Route::middleware(['auth', 'admin.auth'])->prefix('admin')->name('admin.')->group(function () {
-    
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/', [PublicController::class, 'home'])->name('public.home');
+    Route::get('/blog/{slug}', [PublicController::class, 'showPost'])->name('public.post');
+    Route::get('/pages/{slug}', [PublicController::class, 'showPage'])->name('public.page');
 });
 
 Route::get('/dashboard', function () {

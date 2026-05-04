@@ -2,63 +2,55 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $media = Media::with('user')->latest()->paginate(24);
+
+        if ($request->expectsJson()) {
+            return response()->json($media->items());
+        }
+
+        return view('admin.media.index', compact('media'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function upload(Request $request)
     {
-        //
+        $request->validate([
+            'files' => ['required', 'array'],
+            'files.*' => ['file', 'max:10240'],
+        ]);
+
+        $uploaded = [];
+
+        foreach ($request->file('files', []) as $file) {
+            $path = $file->store('media', 'public');
+
+            $uploaded[] = Media::create([
+                'user_id' => $request->user()->id,
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $path,
+                'file_type' => $file->getClientMimeType(),
+                'file_size' => $file->getSize(),
+            ]);
+        }
+
+        return response()->json($uploaded);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function destroy(Media $medium)
     {
-        //
-    }
+        if ($medium->file_path && Storage::disk('public')->exists($medium->file_path)) {
+            Storage::disk('public')->delete($medium->file_path);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $medium->delete();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return back()->with('success', 'Media deleted successfully.');
     }
 }

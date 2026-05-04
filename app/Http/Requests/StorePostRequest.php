@@ -22,7 +22,7 @@ class StorePostRequest extends FormRequest
             'content'          => 'required|string',
             'excerpt'          => 'nullable|string|max:500',
             'featured_image'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'status'           => 'required|in:draft,published',
+            'status'           => 'required|in:draft,published,archived',
             'category_id'      => 'required|exists:categories,id',
             'meta_title'       => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -41,7 +41,7 @@ class StorePostRequest extends FormRequest
             'featured_image.image' => 'Sirf image file upload karein.',
             'featured_image.max'   => 'Image 2MB se badi nahi honi chahiye.',
             'status.required'      => 'Status select karein.',
-            'status.in'            => 'Status sirf draft ya published ho sakta hai.',
+            'status.in'            => 'Status draft, published, ya archived ho sakta hai.',
             'category_id.required' => 'Category select karein.',
             'category_id.exists'   => 'Selected category exist nahi karti.',
         ];

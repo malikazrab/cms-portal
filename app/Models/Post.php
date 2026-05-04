@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Database\Eloquent\Model;
     class Post extends Model
@@ -10,5 +11,13 @@ use Illuminate\Database\Eloquent\Model;
     public function user() { return $this->belongsTo(User::class); }
     public function category() { return $this->belongsTo(Category::class); }
     public function tags() { return $this->belongsToMany(Tag::class); }
+    protected static function booted()
+{
+    static::deleting(function ($post) {
+        if ($post->featured_image && Storage::disk('public')->exists($post->featured_image)) {
+            Storage::disk('public')->delete($post->featured_image);
+        }
+    });
+}
 }
 

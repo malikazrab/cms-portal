@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Http\Requests\StorePostRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Mews\Purifier\Facades\Purifier;
 
 class PostController extends Controller
 {
@@ -15,7 +16,6 @@ class PostController extends Controller
     {
         $query = Post::with(['user', 'category']);
 
-        // ✅ Fix Error 4: get() -> input()
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
@@ -42,13 +42,14 @@ class PostController extends Controller
                                          ->store('posts/images', 'public');
         }
 
+        // ✅ Purifier applied to sanitize content before saving
+        $cleanContent = Purifier::clean($request->input('content'));
+
         $post = Post::create([
-            // ✅ Fix Error 1: auth()->user()->id
-           'user_id' => auth('web')->id(),
-            // ✅ Fix Error 2: ->input() use karo
+            'user_id'          => auth('web')->id(),
             'title'            => $request->input('title'),
             'slug'             => $request->input('slug'),
-            'content'          => $request->input('content'),
+            'content'          => $cleanContent,
             'excerpt'          => $request->input('excerpt'),
             'featured_image'   => $featuredImagePath,
             'status'           => $request->input('status'),
@@ -86,11 +87,13 @@ class PostController extends Controller
                                           ->store('posts/images', 'public');
         }
 
-        // ✅ Fix Error 3: ->input() use karo
+        // ✅ Purifier applied to sanitize content before saving
+        $cleanContent = Purifier::clean($request->input('content'));
+
         $post->update([
             'title'            => $request->input('title'),
             'slug'             => $request->input('slug'),
-            'content'          => $request->input('content'),
+            'content'          => $cleanContent,
             'excerpt'          => $request->input('excerpt'),
             'featured_image'   => $featuredImagePath,
             'status'           => $request->input('status'),
