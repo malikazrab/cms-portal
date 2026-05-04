@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -20,6 +20,8 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
     public const ROLE_EDITOR = 'editor';
+    public const ROLE_POST_EDITOR = 'post_editor';
+    public const ROLE_PAGE_EDITOR = 'page_editor';
 
     protected const ROLE_PERMISSIONS = [
         self::ROLE_ADMIN => ['*'],
@@ -39,6 +41,30 @@ class User extends Authenticatable
             'media.delete',
             'categories.view',
             'categories.create',
+            'activity.view',
+        ],
+        self::ROLE_POST_EDITOR => [
+            'admin.access',
+            'dashboard.view',
+            'posts.view',
+            'posts.create',
+            'posts.update',
+            'posts.delete',
+            'media.view',
+            'media.upload',
+            'media.delete',
+            'categories.view',
+        ],
+        self::ROLE_PAGE_EDITOR => [
+            'admin.access',
+            'dashboard.view',
+            'pages.view',
+            'pages.create',
+            'pages.update',
+            'pages.delete',
+            'media.view',
+            'media.upload',
+            'media.delete',
         ],
     ];
 
@@ -72,11 +98,50 @@ class User extends Authenticatable
         return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
     }
 
+    /**
+     * Get all permissions for a specific role.
+     */
+    public static function getRolePermissions(string $role): array
+    {
+        return self::ROLE_PERMISSIONS[$role] ?? [];
+    }
+
+    /**
+     * Get all available permissions in the system.
+     */
+    public static function getAllPermissions(): array
+    {
+        return [
+            'admin.access' => 'Access Admin Panel',
+            'dashboard.view' => 'View Dashboard',
+            'posts.view' => 'View Posts',
+            'posts.create' => 'Create Posts',
+            'posts.update' => 'Update Posts',
+            'posts.delete' => 'Delete Posts',
+            'pages.view' => 'View Pages',
+            'pages.create' => 'Create Pages',
+            'pages.update' => 'Update Pages',
+            'pages.delete' => 'Delete Pages',
+            'media.view' => 'View Media',
+            'media.upload' => 'Upload Media',
+            'media.delete' => 'Delete Media',
+            'categories.view' => 'View Categories',
+            'categories.create' => 'Create Categories',
+            'tags.view' => 'View Tags',
+            'tags.create' => 'Create Tags',
+            'settings.manage' => 'Manage Settings',
+            'users.manage' => 'Manage Users',
+            'activity.view' => 'View Activity Logs',
+        ];
+    }
+
     public static function availableRoles(): array
     {
         return [
             self::ROLE_ADMIN => 'Admin',
             self::ROLE_EDITOR => 'Editor',
+            self::ROLE_POST_EDITOR => 'Post Editor',
+            self::ROLE_PAGE_EDITOR => 'Page Editor',
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use App\Services\ActivityLogger;
 use Closure;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ class LogUserActivity
     {
         $response = $next($request);
 
-        if ($request->user()) {
+        // Only log activities for non-admin users
+        if ($request->user() && !$request->user()->hasRole(User::ROLE_ADMIN)) {
             ActivityLogger::log(
                 action: 'request.'.$request->method(),
                 description: $request->method().' '.$request->path(),

@@ -11,6 +11,7 @@ use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlugController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\RoleManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.auth'])
@@ -47,7 +48,15 @@ Route::middleware(['auth', 'admin.auth'])
         Route::get('/settings/sections/{section}', [SettingController::class, 'editSection'])->middleware('permission:settings.manage')->name('settings.sections.edit');
 
         Route::get('users', [UserManagementController::class, 'index'])->middleware('permission:users.manage')->name('users.index');
+        Route::get('users/create', [UserManagementController::class, 'create'])->middleware('permission:users.manage')->name('users.create');
+        Route::post('users', [UserManagementController::class, 'store'])->middleware('permission:users.manage')->name('users.store');
+        Route::get('users/{user}/edit', [UserManagementController::class, 'edit'])->middleware('permission:users.manage')->name('users.edit');
+        Route::put('users/{user}', [UserManagementController::class, 'update'])->middleware('permission:users.manage')->name('users.update');
+        Route::delete('users/{user}', [UserManagementController::class, 'destroy'])->middleware('permission:users.manage')->name('users.destroy');
         Route::patch('users/{user}/role', [UserManagementController::class, 'updateRole'])->middleware('permission:users.manage')->name('users.role.update');
+
+        Route::get('roles', [RoleManagementController::class, 'index'])->middleware('permission:users.manage')->name('roles.index');
+        Route::get('roles/{role}', [RoleManagementController::class, 'show'])->middleware('permission:users.manage')->name('roles.show');
 
         Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('permission:activity.view')->name('activity-logs.index');
 

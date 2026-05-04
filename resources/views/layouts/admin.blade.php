@@ -52,6 +52,9 @@
                     @if (auth()->user()?->hasPermission('users.manage'))
                         <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.users.index') }}">Users</a>
                     @endif
+                    @if (auth()->user()?->hasPermission('users.manage'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.roles.index') }}">Roles & Permissions</a>
+                    @endif
                     @if (auth()->user()?->hasPermission('activity.view'))
                         <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.activity-logs.index') }}">Activity Logs</a>
                     @endif
