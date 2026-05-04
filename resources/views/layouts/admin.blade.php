@@ -25,14 +25,36 @@
         <div class="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[220px_1fr]">
             <aside class="rounded bg-white p-4 shadow-sm">
                 <nav class="space-y-1 text-sm">
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.dashboard') }}">Dashboard</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.posts.index') }}">Posts</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.posts.create') }}">New Post</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.pages.index') }}">Pages</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.pages.create') }}">New Page</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.media.index') }}">Media</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.categories.index') }}">Categories</a>
-                    <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.settings.index') }}">Settings</a>
+                    @if (auth()->user()?->hasPermission('dashboard.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.dashboard') }}">Dashboard</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('posts.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.posts.index') }}">Posts</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('posts.create'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.posts.create') }}">New Post</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('pages.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.pages.index') }}">Pages</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('pages.create'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.pages.create') }}">New Page</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('media.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.media.index') }}">Media</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('categories.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.categories.index') }}">Categories</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('settings.manage'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.settings.index') }}">Settings</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('users.manage'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.users.index') }}">Users</a>
+                    @endif
+                    @if (auth()->user()?->hasPermission('activity.view'))
+                        <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.activity-logs.index') }}">Activity Logs</a>
+                    @endif
                 </nav>
             </aside>
 

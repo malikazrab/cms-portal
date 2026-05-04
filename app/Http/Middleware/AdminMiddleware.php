@@ -11,9 +11,10 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['admin', 'editor'])) {
+        if (Auth::check() && Auth::user()->hasPermission('admin.access')) {
             return $next($request);
         }
+
         abort(403, 'Unauthorized access.');
     }
 }

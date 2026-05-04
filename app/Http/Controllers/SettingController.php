@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use App\Models\Setting;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
@@ -32,6 +33,13 @@ class SettingController extends Controller
         foreach ($data as $key => $value) {
             Setting::setValue($key, $value);
         }
+
+        ActivityLogger::log(
+            action: 'settings.updated',
+            description: 'Settings updated',
+            properties: $data,
+            user: $request->user()
+        );
 
         return redirect()->route('admin.settings.index')
                          ->with('success', 'Settings saved.');
@@ -69,6 +77,14 @@ class SettingController extends Controller
 
             Setting::setValue($config['key'], $page->id);
         }
+
+        ActivityLogger::log(
+            action: 'settings.section_opened',
+            subject: $page,
+            description: 'Settings section opened in page builder',
+            properties: ['section' => $section],
+            user: $request->user()
+        );
 
         return redirect()->route('admin.pages.edit', $page);
     }

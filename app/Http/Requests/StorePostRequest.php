@@ -38,7 +38,7 @@ class StorePostRequest extends FormRequest
         return [
             'title.required'       => 'Title zaroori hai.',
             'slug.required'        => 'Slug zaroori hai.',
-            'slug.unique'          => 'Yeh slug already use ho chuka hai.',
+            'slug.unique'          => 'This slug is already in use.',
             'content.required'     => 'Content zaroori hai.',
             'featured_image.image' => 'Please upload a valid image file.',
             'featured_image.mimes' => 'Featured image must be a JPG, PNG, WEBP, GIF, or AVIF file.',

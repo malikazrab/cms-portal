@@ -642,6 +642,10 @@ function pageBuilderApp() {
                 this.loadFromStorage();
             }
 
+            if (this.components.length === 0) {
+                this.loadSampleData();
+            }
+
             this.loadTemplates();
             this.darkMode = localStorage.getItem('builder_dark') === 'true';
             this.snapGrid = localStorage.getItem('builder_snap') === 'true';
@@ -665,9 +669,58 @@ function pageBuilderApp() {
             }
         },
 
+        normalizeComponent(component) {
+            if (!component || typeof component !== 'object') return null;
+
+            const type = component.type || 'paragraph';
+            const defaultSettings = this.getDefaultSettings(type);
+            const legacySettings = { ...component };
+            delete legacySettings.id;
+            delete legacySettings.type;
+
+            const settings = {
+                ...defaultSettings,
+                ...legacySettings,
+                ...(component.settings || {}),
+            };
+
+            if (type === 'heading' && !settings.text && component.content) {
+                settings.text = component.content;
+            }
+
+            if (type === 'paragraph' && !settings.content && component.content) {
+                settings.content = component.content;
+            }
+
+            if (type === 'image' && !settings.url && component.src) {
+                settings.url = component.src;
+            }
+
+            if (type === 'button') {
+                if (!settings.text && component.text) settings.text = component.text;
+                if (!settings.link && component.link) settings.link = component.link;
+            }
+
+            return {
+                id: component.id || this.generateId(),
+                type,
+                settings,
+            };
+        },
+
+        normalizeComponents(components) {
+            if (!Array.isArray(components)) return [];
+
+            return components
+                .map(component => this.normalizeComponent(component))
+                .filter(Boolean);
+        },
+
         loadExistingPageData(data) {
-            if (Array.isArray(data.components) && data.components.length) {
-                this.components = data.components;
+            const normalizedComponents = this.normalizeComponents(data.components);
+
+            if (normalizedComponents.length) {
+                this.components = normalizedComponents;
             }
 
             if (data.globalStyles) {
@@ -758,7 +811,8 @@ function pageBuilderApp() {
         
         // ==================== WIDGET RENDERING ====================
         renderWidgetContent(comp) {
-            const s = comp.settings;
+            const normalized = this.normalizeComponent(comp) || this.createWidget('paragraph');
+            const s = normalized.settings;
             const style = `padding:${s.pt||0}px ${s.pr||0}px ${s.pb||0}px ${s.pl||0}px;background:${s.bgColor||'transparent'};border-radius:${s.borderRadius||0}px;${s.customCss||''}`;
             
             const renders = {
@@ -792,7 +846,7 @@ function pageBuilderApp() {
                 'raw-html': () => `<div style="${style}">${s.code || '<p>Custom HTML</p>'}</div>`,
             };
             
-            return (renders[comp.type] || (() => `<div style="${style}">${s.content || comp.type}</div>`))();
+            return (renders[normalized.type] || (() => `<div style="${style}">${s.content || normalized.type}</div>`))();
         },
         
         escapeHtml(str) {
@@ -996,7 +1050,7 @@ function pageBuilderApp() {
         
         loadTemplate(index) {
             this.pushHistory();
-            this.components = JSON.parse(JSON.stringify(this.templates[index].components));
+            this.components = this.normalizeComponents(JSON.parse(JSON.stringify(this.templates[index].components)));
             this.showTemplatesModal = false;
             this.markDirty();
             this.showToast('Template loaded!');
@@ -1018,7 +1072,7 @@ function pageBuilderApp() {
         // ==================== SAVE/LOAD ====================
         savePage(status) {
             const pageData = { components: this.components, globalStyles: this.globalStyles, seoData: this.seoData };
-            localStorage.setItem('cms_page_data', JSON.stringify(pageData));
+            localStorage.setItem(this.getStorageKey(), JSON.stringify(pageData));
             this.isDirty = false;
             this.showToast('Page saved!');
             
@@ -1050,21 +1104,28 @@ function pageBuilderApp() {
         autoSave() {
             if (this.isDirty) {
                 const pageData = { components: this.components, globalStyles: this.globalStyles, seoData: this.seoData };
-                localStorage.setItem('cms_page_data', JSON.stringify(pageData));
+                localStorage.setItem(this.getStorageKey(), JSON.stringify(pageData));
                 this.isDirty = false;
             }
         },
-        
+
         loadFromStorage() {
             try {
-                const stored = localStorage.getItem('cms_page_data');
+                const stored = localStorage.getItem(this.getStorageKey());
                 if (stored) {
                     const data = JSON.parse(stored);
-                    if (data.components && data.components.length) this.components = data.components;
+                    const normalizedComponents = this.normalizeComponents(data.components);
+                    if (normalizedComponents.length) this.components = normalizedComponents;
                     if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
                     if (data.seoData) this.seoData = { ...this.seoData, ...data.seoData };
                 }
             } catch(e) {}
+        },
+
+        getStorageKey() {
+            return window.pageBuilderConfig?.pageId
+                ? `cms_page_data_${window.pageBuilderConfig.pageId}`
+                : 'cms_page_data_new';
         },
         
         markDirty() { this.isDirty = true; },
@@ -1089,7 +1150,7 @@ function pageBuilderApp() {
                 try {
                     const data = JSON.parse(ev.target.result);
                     this.pushHistory();
-                    this.components = data.components || [];
+                    this.components = this.normalizeComponents(data.components || []);
                     if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
                     this.markDirty();
                     this.showToast('Imported!');
