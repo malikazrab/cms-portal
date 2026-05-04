@@ -27,12 +27,15 @@ Route::middleware(['auth', 'admin.auth'])
 
         Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::get('/settings/sections/{section}', [SettingController::class, 'editSection'])->name('settings.sections.edit');
 
         Route::match(['get', 'post'], '/slug', [SlugController::class, 'generate'])->name('slug.generate');
     });
 
 Route::middleware('throttle:60,1')->group(function () {
     Route::get('/', [PublicController::class, 'home'])->name('public.home');
+    Route::get('/blog', [PublicController::class, 'blog'])->name('public.blog');
+    Route::get('/media/{path}', [PublicController::class, 'serveMedia'])->where('path', '.*')->name('public.media');
     Route::get('/blog/{slug}', [PublicController::class, 'showPost'])->name('public.post');
     Route::get('/pages/{slug}', [PublicController::class, 'showPage'])->name('public.page');
 });

@@ -1,30 +1,22 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'CMS Portal') }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-gray-50 text-gray-900">
-    <main class="mx-auto max-w-4xl px-4 py-10">
-        <h1 class="text-3xl font-bold">{{ config('app.name', 'CMS Portal') }}</h1>
-        <div class="mt-8 space-y-6">
-            @forelse ($posts as $post)
-                <article class="rounded bg-white p-6 shadow-sm">
-                    <h2 class="text-xl font-semibold">
-                        <a href="{{ route('public.post', $post->slug) }}" class="hover:text-blue-600">{{ $post->title }}</a>
-                    </h2>
-                    <p class="mt-2 text-sm text-gray-500">{{ $post->category->name ?? 'Uncategorized' }}</p>
-                    @if ($post->excerpt)
-                        <p class="mt-3 text-gray-700">{{ $post->excerpt }}</p>
-                    @endif
-                </article>
-            @empty
-                <p class="rounded bg-white p-6 text-gray-600 shadow-sm">No published posts yet.</p>
-            @endforelse
+@extends('layouts.public')
+
+@section('title', $siteName ?? config('app.name', 'CMS Portal'))
+
+@if (!empty($siteDescription))
+    @section('meta_description', $siteDescription)
+@endif
+
+@section('content')
+    <section class="mx-auto max-w-5xl px-4 py-16">
+        <div class="rounded bg-white p-10 text-center shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-blue-600">Default Home</p>
+            <h1 class="mt-4 text-4xl font-bold text-gray-900">{{ $siteName ?? config('app.name', 'CMS Portal') }}</h1>
+            <p class="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+                {{ $siteDescription ?: 'Choose a page as the home page from admin settings, then edit it in the page builder. Posts stay available on the blog page.' }}
+            </p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <a href="{{ route('public.blog') }}" class="rounded bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700">Open Blog</a>
+            </div>
         </div>
-        <div class="mt-8">{{ $posts->links() }}</div>
-    </main>
-</body>
-</html>
+    </section>
+@endsection

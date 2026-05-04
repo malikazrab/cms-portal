@@ -33,6 +33,52 @@
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 overflow-hidden" x-data="pageBuilderApp()" x-init="initBuilder()" @keydown.window="handleKeydown($event)" :class="{'dark': darkMode}">
+@php
+    $existingBuilderData = null;
+
+    if (!empty($page?->content)) {
+        $decodedContent = json_decode($page->content, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedContent)) {
+            $existingBuilderData = $decodedContent;
+        } else {
+            $existingBuilderData = [
+                'components' => [
+                    [
+                        'id' => 'legacy-html',
+                        'type' => 'raw-html',
+                        'settings' => [
+                            'code' => $page->content,
+                            'pt' => 10,
+                            'pb' => 10,
+                        ],
+                    ],
+                ],
+                'globalStyles' => [
+                    'primaryColor' => '#0ea5e9',
+                    'fontFamily' => 'Inter, sans-serif',
+                    'bgColor' => '#ffffff',
+                    'bgImage' => '',
+                ],
+                'seoData' => [
+                    'title' => $page->meta_title ?: $page->title,
+                    'meta' => $page->meta_description ?? '',
+                ],
+            ];
+        }
+    }
+
+    $pageBuilderConfig = [
+        'pageId' => $page?->id,
+        'saveUrl' => $page ? route('admin.pages.update', $page) : route('admin.pages.store'),
+        'saveMethod' => $page ? 'PUT' : 'POST',
+        'redirectUrl' => route('admin.pages.index'),
+        'pageData' => $existingBuilderData,
+    ];
+@endphp
+<script>
+    window.pageBuilderConfig = @json($pageBuilderConfig);
+</script>
 
 <!-- TOAST NOTIFICATIONS -->
 <div x-show="toastMessage" x-transition.duration.300ms class="toast bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2">
@@ -589,8 +635,13 @@ function pageBuilderApp() {
         
         // ==================== INIT ====================
         initBuilder() {
-            this.loadSampleData();
-            this.loadFromStorage();
+            if (window.pageBuilderConfig?.pageData) {
+                this.loadExistingPageData(window.pageBuilderConfig.pageData);
+            } else {
+                this.loadSampleData();
+                this.loadFromStorage();
+            }
+
             this.loadTemplates();
             this.darkMode = localStorage.getItem('builder_dark') === 'true';
             this.snapGrid = localStorage.getItem('builder_snap') === 'true';
@@ -611,6 +662,20 @@ function pageBuilderApp() {
                 this.components[0].settings.alignment = 'center';
                 this.components[0].settings.color = '#0ea5e9';
                 this.components[0].settings.fontSize = 48;
+            }
+        },
+
+        loadExistingPageData(data) {
+            if (Array.isArray(data.components) && data.components.length) {
+                this.components = data.components;
+            }
+
+            if (data.globalStyles) {
+                this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
+            }
+
+            if (data.seoData) {
+                this.seoData = { ...this.seoData, ...data.seoData };
             }
         },
         
@@ -958,8 +1023,8 @@ function pageBuilderApp() {
             this.showToast('Page saved!');
             
             // Send to server
-            fetch('{{ route('admin.pages.store') }}', {
-                method: 'POST',
+            fetch(window.pageBuilderConfig.saveUrl, {
+                method: window.pageBuilderConfig.saveMethod || 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
                 body: JSON.stringify({
                     title: this.seoData.title || 'Untitled Page',
@@ -967,10 +1032,16 @@ function pageBuilderApp() {
                     content: JSON.stringify(pageData),
                     status: status || 'draft',
                     meta_title: this.seoData.title,
-                    meta_description: this.seoData.meta
+                    meta_description: this.seoData.meta,
+                    template: 'builder'
                 })
             }).then(response => {
-                if (response.redirected) window.location.href = response.url;
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                window.location.href = window.pageBuilderConfig.redirectUrl;
             }).catch(err => console.error('Save error:', err));
         },
         

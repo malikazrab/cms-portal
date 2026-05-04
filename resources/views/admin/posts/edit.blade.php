@@ -54,7 +54,8 @@
 
         <input name="meta_title" value="{{ old('meta_title', $post->meta_title) }}" class="w-full rounded border-gray-300" placeholder="Meta title">
         <textarea name="meta_description" rows="3" class="w-full rounded border-gray-300" placeholder="Meta description">{{ old('meta_description', $post->meta_description) }}</textarea>
-        <input type="file" name="featured_image" class="block w-full text-sm">
+        <input type="file" name="featured_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="block w-full text-sm">
+        <p class="mt-1 text-xs text-gray-500">Allowed: JPG, PNG, WEBP, GIF, AVIF. Current upload limit: 100MB.</p>
 
         <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Update Post</button>
     </form>

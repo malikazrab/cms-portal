@@ -59,7 +59,8 @@
 
             <div>
                 <label class="mb-1 block text-sm font-medium text-gray-700">Featured Image</label>
-                <input type="file" name="featured_image" class="w-full text-sm">
+                <input type="file" name="featured_image" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="w-full text-sm">
+                <p class="mt-1 text-xs text-gray-500">Allowed: JPG, PNG, WEBP, GIF, AVIF. Current upload limit: 100MB.</p>
             </div>
         </aside>
     </form>
