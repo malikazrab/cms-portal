@@ -117,6 +117,46 @@
         </div>
     </div>
 
+    <!-- Users with Custom Permissions -->
+    @if ($usersWithCustomPermissions->count() > 0)
+    <div class="mt-8">
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">Users with Custom Permissions ({{ $usersWithCustomPermissions->count() }})</h2>
+        
+        <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">User</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Custom Permissions</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    @foreach ($usersWithCustomPermissions as $user)
+                        <tr>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $user->name }}</td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $user->email }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach ($user->custom_permissions as $permission)
+                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                                            {{ $allPermissions[$permission] ?? $permission }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
+                                <a href="{{ route('admin.users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
     <div class="mt-8 rounded bg-blue-50 p-4 text-sm text-blue-800">
         <p><strong>Note:</strong> This role configuration is defined in the application code. To modify permissions for a role, please contact your system administrator or update the role permissions in the application settings.</p>
     </div>

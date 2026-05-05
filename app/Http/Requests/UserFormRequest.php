@@ -37,6 +37,8 @@ class UserFormRequest extends FormRequest
                 Rule::unique(User::class)->ignore($userId),
             ],
             'role' => ['required', 'in:'.implode(',', array_keys(User::availableRoles()))],
+            'custom_permissions' => ['nullable', 'array'],
+            'custom_permissions.*' => ['string', 'in:'.implode(',', array_keys(User::getAllPermissions()))],
         ];
 
         // Password is required for creation, optional for updates

@@ -36,17 +36,23 @@ class RoleManagementController extends Controller
     public function show(string $roleKey): View
     {
         $roles = User::availableRoles();
-        
+
         abort_unless(array_key_exists($roleKey, $roles), 404);
 
         $permissions = User::getRolePermissions($roleKey);
         $allPermissions = User::getAllPermissions();
+
+        // Get users with this role who have custom permissions
+        $usersWithCustomPermissions = User::where('role', $roleKey)
+            ->whereNotNull('custom_permissions')
+            ->get();
 
         return view('admin.roles.show', [
             'roleKey' => $roleKey,
             'roleName' => $roles[$roleKey],
             'permissions' => $permissions,
             'allPermissions' => $allPermissions,
+            'usersWithCustomPermissions' => $usersWithCustomPermissions,
         ]);
     }
 }

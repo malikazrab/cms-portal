@@ -80,5 +80,8 @@ Route::middleware(['auth', 'activity'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+Route::get('/admin/pages/create', [PageController::class, 'create'])->name('admin.pages.create');
+Route::post('/admin/pages', [PageController::class, 'store'])->name('admin.pages.store');
+Route::put('/admin/pages/{page}', [PageController::class, 'update'])->name('admin.pages.update'); 
 
 require __DIR__.'/auth.php';
