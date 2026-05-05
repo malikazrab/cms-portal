@@ -31,7 +31,7 @@ class StorePageRequest extends FormRequest
         return [
             'title.required'  => 'Title zaroori hai.',
             'slug.required'   => 'Slug zaroori hai.',
-            'slug.unique'     => 'Yeh slug already use ho chuka hai.',
+            'slug.unique'     => 'This slug is already in use.',
             'status.required' => 'Status select karein.',
             'status.in'       => 'Status sirf draft ya published ho sakta hai.',
         ];

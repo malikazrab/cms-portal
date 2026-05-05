@@ -30,6 +30,47 @@
             </div>
         </div>
 
+        <div class="grid gap-4 border-t pt-4 md:grid-cols-3">
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700" for="home_page_id">Home Page</label>
+                <select id="home_page_id" name="home_page_id" class="w-full rounded border-gray-300">
+                    <option value="">Use first published page</option>
+                    @foreach ($pages as $page)
+                        <option value="{{ $page->id }}" @selected(old('home_page_id', $settings['home_page_id'] ?? '') == $page->id)>
+                            {{ $page->title }} ({{ ucfirst($page->status) }})
+                        </option>
+                    @endforeach
+                </select>
+                <a href="{{ route('admin.settings.sections.edit', 'home') }}" class="mt-2 inline-block text-sm text-blue-600 hover:text-blue-700">Create or edit home page</a>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700" for="header_page_id">Header Content</label>
+                <select id="header_page_id" name="header_page_id" class="w-full rounded border-gray-300">
+                    <option value="">No extra header content</option>
+                    @foreach ($pages as $page)
+                        <option value="{{ $page->id }}" @selected(old('header_page_id', $settings['header_page_id'] ?? '') == $page->id)>
+                            {{ $page->title }} ({{ ucfirst($page->status) }})
+                        </option>
+                    @endforeach
+                </select>
+                <a href="{{ route('admin.settings.sections.edit', 'header') }}" class="mt-2 inline-block text-sm text-blue-600 hover:text-blue-700">Create or edit header</a>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700" for="footer_page_id">Footer Content</label>
+                <select id="footer_page_id" name="footer_page_id" class="w-full rounded border-gray-300">
+                    <option value="">No extra footer content</option>
+                    @foreach ($pages as $page)
+                        <option value="{{ $page->id }}" @selected(old('footer_page_id', $settings['footer_page_id'] ?? '') == $page->id)>
+                            {{ $page->title }} ({{ ucfirst($page->status) }})
+                        </option>
+                    @endforeach
+                </select>
+                <a href="{{ route('admin.settings.sections.edit', 'footer') }}" class="mt-2 inline-block text-sm text-blue-600 hover:text-blue-700">Create or edit footer</a>
+            </div>
+        </div>
+
         <button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Save Settings</button>
     </form>
 </div>

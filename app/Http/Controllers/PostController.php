@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Http\Requests\StorePostRequest;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Mews\Purifier\Facades\Purifier;
@@ -63,12 +64,22 @@ class PostController extends Controller
             $post->tags()->sync($request->input('tags'));
         }
 
+        ActivityLogger::log(
+            action: 'post.created',
+            subject: $post,
+            description: 'Post created',
+            properties: ['title' => $post->title, 'status' => $post->status],
+            user: $request->user()
+        );
+
         return redirect()->route('admin.posts.index')
                          ->with('success', 'Post created successfully.');
     }
 
     public function edit(Post $post)
     {
+        $this->authorize('update', $post);
+
         $categories = Category::all();
         $tags = Tag::all();
         $selectedTags = $post->tags->pluck('id')->toArray();
@@ -77,6 +88,8 @@ class PostController extends Controller
 
     public function update(StorePostRequest $request, Post $post)
     {
+        $this->authorize('update', $post);
+
         $featuredImagePath = $post->featured_image;
 
         if ($request->hasFile('featured_image')) {
@@ -107,17 +120,37 @@ class PostController extends Controller
 
         $post->tags()->sync($request->input('tags') ?? []);
 
+        ActivityLogger::log(
+            action: 'post.updated',
+            subject: $post,
+            description: 'Post updated',
+            properties: ['title' => $post->title, 'status' => $post->status],
+            user: $request->user()
+        );
+
         return redirect()->route('admin.posts.index')
                          ->with('success', 'Post updated successfully.');
     }
 
     public function destroy(Post $post)
     {
+        $this->authorize('delete', $post);
+
+        $postId = $post->id;
+        $title = $post->title;
+
         if ($post->featured_image && Storage::disk('public')->exists($post->featured_image)) {
             Storage::disk('public')->delete($post->featured_image);
         }
 
         $post->delete();
+
+        ActivityLogger::log(
+            action: 'post.deleted',
+            description: 'Post deleted',
+            properties: ['post_id' => $postId, 'title' => $title],
+            user: request()->user()
+        );
 
         return redirect()->route('admin.posts.index')
                          ->with('success', 'Post deleted successfully.');

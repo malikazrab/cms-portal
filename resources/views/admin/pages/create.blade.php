@@ -33,6 +33,52 @@
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 overflow-hidden" x-data="pageBuilderApp()" x-init="initBuilder()" @keydown.window="handleKeydown($event)" :class="{'dark': darkMode}">
+@php
+    $existingBuilderData = null;
+
+    if (!empty($page?->content)) {
+        $decodedContent = json_decode($page->content, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedContent)) {
+            $existingBuilderData = $decodedContent;
+        } else {
+            $existingBuilderData = [
+                'components' => [
+                    [
+                        'id' => 'legacy-html',
+                        'type' => 'raw-html',
+                        'settings' => [
+                            'code' => $page->content,
+                            'pt' => 10,
+                            'pb' => 10,
+                        ],
+                    ],
+                ],
+                'globalStyles' => [
+                    'primaryColor' => '#0ea5e9',
+                    'fontFamily' => 'Inter, sans-serif',
+                    'bgColor' => '#ffffff',
+                    'bgImage' => '',
+                ],
+                'seoData' => [
+                    'title' => $page->meta_title ?: $page->title,
+                    'meta' => $page->meta_description ?? '',
+                ],
+            ];
+        }
+    }
+
+    $pageBuilderConfig = [
+        'pageId' => $page?->id,
+        'saveUrl' => $page ? route('admin.pages.update', $page) : route('admin.pages.store'),
+        'saveMethod' => $page ? 'PUT' : 'POST',
+        'redirectUrl' => route('admin.pages.index'),
+        'pageData' => $existingBuilderData,
+    ];
+@endphp
+<script>
+    window.pageBuilderConfig = @json($pageBuilderConfig);
+</script>
 
 <!-- TOAST NOTIFICATIONS -->
 <div x-show="toastMessage" x-transition.duration.300ms class="toast bg-green-600 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-2">
@@ -589,8 +635,17 @@ function pageBuilderApp() {
         
         // ==================== INIT ====================
         initBuilder() {
-            this.loadSampleData();
-            this.loadFromStorage();
+            if (window.pageBuilderConfig?.pageData) {
+                this.loadExistingPageData(window.pageBuilderConfig.pageData);
+            } else {
+                this.loadSampleData();
+                this.loadFromStorage();
+            }
+
+            if (this.components.length === 0) {
+                this.loadSampleData();
+            }
+
             this.loadTemplates();
             this.darkMode = localStorage.getItem('builder_dark') === 'true';
             this.snapGrid = localStorage.getItem('builder_snap') === 'true';
@@ -611,6 +666,69 @@ function pageBuilderApp() {
                 this.components[0].settings.alignment = 'center';
                 this.components[0].settings.color = '#0ea5e9';
                 this.components[0].settings.fontSize = 48;
+            }
+        },
+
+        normalizeComponent(component) {
+            if (!component || typeof component !== 'object') return null;
+
+            const type = component.type || 'paragraph';
+            const defaultSettings = this.getDefaultSettings(type);
+            const legacySettings = { ...component };
+            delete legacySettings.id;
+            delete legacySettings.type;
+
+            const settings = {
+                ...defaultSettings,
+                ...legacySettings,
+                ...(component.settings || {}),
+            };
+
+            if (type === 'heading' && !settings.text && component.content) {
+                settings.text = component.content;
+            }
+
+            if (type === 'paragraph' && !settings.content && component.content) {
+                settings.content = component.content;
+            }
+
+            if (type === 'image' && !settings.url && component.src) {
+                settings.url = component.src;
+            }
+
+            if (type === 'button') {
+                if (!settings.text && component.text) settings.text = component.text;
+                if (!settings.link && component.link) settings.link = component.link;
+            }
+
+            return {
+                id: component.id || this.generateId(),
+                type,
+                settings,
+            };
+        },
+
+        normalizeComponents(components) {
+            if (!Array.isArray(components)) return [];
+
+            return components
+                .map(component => this.normalizeComponent(component))
+                .filter(Boolean);
+        },
+
+        loadExistingPageData(data) {
+            const normalizedComponents = this.normalizeComponents(data.components);
+
+            if (normalizedComponents.length) {
+                this.components = normalizedComponents;
+            }
+
+            if (data.globalStyles) {
+                this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
+            }
+
+            if (data.seoData) {
+                this.seoData = { ...this.seoData, ...data.seoData };
             }
         },
         
@@ -693,7 +811,8 @@ function pageBuilderApp() {
         
         // ==================== WIDGET RENDERING ====================
         renderWidgetContent(comp) {
-            const s = comp.settings;
+            const normalized = this.normalizeComponent(comp) || this.createWidget('paragraph');
+            const s = normalized.settings;
             const style = `padding:${s.pt||0}px ${s.pr||0}px ${s.pb||0}px ${s.pl||0}px;background:${s.bgColor||'transparent'};border-radius:${s.borderRadius||0}px;${s.customCss||''}`;
             
             const renders = {
@@ -727,7 +846,7 @@ function pageBuilderApp() {
                 'raw-html': () => `<div style="${style}">${s.code || '<p>Custom HTML</p>'}</div>`,
             };
             
-            return (renders[comp.type] || (() => `<div style="${style}">${s.content || comp.type}</div>`))();
+            return (renders[normalized.type] || (() => `<div style="${style}">${s.content || normalized.type}</div>`))();
         },
         
         escapeHtml(str) {
@@ -931,7 +1050,7 @@ function pageBuilderApp() {
         
         loadTemplate(index) {
             this.pushHistory();
-            this.components = JSON.parse(JSON.stringify(this.templates[index].components));
+            this.components = this.normalizeComponents(JSON.parse(JSON.stringify(this.templates[index].components)));
             this.showTemplatesModal = false;
             this.markDirty();
             this.showToast('Template loaded!');
@@ -953,13 +1072,13 @@ function pageBuilderApp() {
         // ==================== SAVE/LOAD ====================
         savePage(status) {
             const pageData = { components: this.components, globalStyles: this.globalStyles, seoData: this.seoData };
-            localStorage.setItem('cms_page_data', JSON.stringify(pageData));
+            localStorage.setItem(this.getStorageKey(), JSON.stringify(pageData));
             this.isDirty = false;
             this.showToast('Page saved!');
             
             // Send to server
-            fetch('{{ route('admin.pages.store') }}', {
-                method: 'POST',
+            fetch(window.pageBuilderConfig.saveUrl, {
+                method: window.pageBuilderConfig.saveMethod || 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
                 body: JSON.stringify({
                     title: this.seoData.title || 'Untitled Page',
@@ -967,10 +1086,16 @@ function pageBuilderApp() {
                     content: JSON.stringify(pageData),
                     status: status || 'draft',
                     meta_title: this.seoData.title,
-                    meta_description: this.seoData.meta
+                    meta_description: this.seoData.meta,
+                    template: 'builder'
                 })
             }).then(response => {
-                if (response.redirected) window.location.href = response.url;
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                window.location.href = window.pageBuilderConfig.redirectUrl;
             }).catch(err => console.error('Save error:', err));
         },
         
@@ -979,21 +1104,28 @@ function pageBuilderApp() {
         autoSave() {
             if (this.isDirty) {
                 const pageData = { components: this.components, globalStyles: this.globalStyles, seoData: this.seoData };
-                localStorage.setItem('cms_page_data', JSON.stringify(pageData));
+                localStorage.setItem(this.getStorageKey(), JSON.stringify(pageData));
                 this.isDirty = false;
             }
         },
-        
+
         loadFromStorage() {
             try {
-                const stored = localStorage.getItem('cms_page_data');
+                const stored = localStorage.getItem(this.getStorageKey());
                 if (stored) {
                     const data = JSON.parse(stored);
-                    if (data.components && data.components.length) this.components = data.components;
+                    const normalizedComponents = this.normalizeComponents(data.components);
+                    if (normalizedComponents.length) this.components = normalizedComponents;
                     if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
                     if (data.seoData) this.seoData = { ...this.seoData, ...data.seoData };
                 }
             } catch(e) {}
+        },
+
+        getStorageKey() {
+            return window.pageBuilderConfig?.pageId
+                ? `cms_page_data_${window.pageBuilderConfig.pageId}`
+                : 'cms_page_data_new';
         },
         
         markDirty() { this.isDirty = true; },
@@ -1018,7 +1150,7 @@ function pageBuilderApp() {
                 try {
                     const data = JSON.parse(ev.target.result);
                     this.pushHistory();
-                    this.components = data.components || [];
+                    this.components = this.normalizeComponents(data.components || []);
                     if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
                     this.markDirty();
                     this.showToast('Imported!');
