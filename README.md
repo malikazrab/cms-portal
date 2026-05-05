@@ -12,6 +12,20 @@ This project includes:
 - Settings for site identity and public layout assignment
 - Admin and editor roles
 
+## ⚡ Quick Start
+
+**First time setup?** Follow the [SETUP.md](./SETUP.md) guide for complete installation instructions.
+
+**Quick reference:**
+```bash
+composer install && npm install
+touch database/database.sqlite
+php artisan migrate && php artisan db:seed
+npm run dev &
+php artisan serve
+# Login with: admin@cms.com / Admin@123
+```
+
 ## 1. Tech Stack
 
 - PHP `8.3+`
