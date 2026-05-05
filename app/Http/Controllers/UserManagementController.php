@@ -33,6 +33,7 @@ class UserManagementController extends Controller
     {
         return view('admin.users.create', [
             'roles' => User::availableRoles(),
+            'allPermissions' => User::getAllPermissions(),
         ]);
     }
 
@@ -48,6 +49,7 @@ class UserManagementController extends Controller
             'email' => $validated['email'],
             'password' => $validated['password'],
             'role' => $validated['role'],
+            'custom_permissions' => $validated['custom_permissions'] ?? null,
         ]);
 
         ActivityLogger::log(
@@ -73,6 +75,7 @@ class UserManagementController extends Controller
         return view('admin.users.edit', [
             'user' => $user,
             'roles' => User::availableRoles(),
+            'allPermissions' => User::getAllPermissions(),
         ]);
     }
 
@@ -98,11 +101,18 @@ class UserManagementController extends Controller
         if ($user->role !== $validated['role']) {
             $changes['role'] = ['old' => $user->role, 'new' => $validated['role']];
         }
+        if (($user->custom_permissions ?? []) !== ($validated['custom_permissions'] ?? [])) {
+            $changes['custom_permissions'] = [
+                'old' => $user->custom_permissions,
+                'new' => $validated['custom_permissions']
+            ];
+        }
 
         // Update user
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
+        $user->custom_permissions = $validated['custom_permissions'] ?? null;
 
         if (!empty($validated['password'])) {
             $user->password = $validated['password'];

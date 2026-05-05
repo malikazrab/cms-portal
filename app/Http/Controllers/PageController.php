@@ -41,6 +41,15 @@ class PageController extends Controller
             user: $request->user()
         );
 
+        // Return JSON for fetch requests, redirect for form submissions
+        if ($request->expectsJson() || $request->header('Content-Type') === 'application/json') {
+            return response()->json([
+                'success' => true,
+                'page_id' => $page->id,
+                'message' => 'Page created successfully.',
+            ]);
+        }
+
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page created successfully.');
     }
@@ -69,6 +78,15 @@ class PageController extends Controller
             properties: ['title' => $page->title, 'status' => $page->status],
             user: $request->user()
         );
+
+        // Return JSON for fetch requests, redirect for form submissions
+        if ($request->expectsJson() || $request->header('Content-Type') === 'application/json') {
+            return response()->json([
+                'success' => true,
+                'page_id' => $page->id,
+                'message' => 'Page updated successfully.',
+            ]);
+        }
 
         return redirect()->route('admin.pages.index')
             ->with('success', 'Page updated successfully.');

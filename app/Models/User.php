@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role'])]
+#[Fillable(['name', 'email', 'password', 'role', 'custom_permissions'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -78,6 +78,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'custom_permissions' => 'array',
         ];
     }
 
@@ -93,9 +94,32 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
+        // If user has custom permissions, check those first
+        if ($this->custom_permissions && in_array($permission, $this->custom_permissions)) {
+            return true;
+        }
+
+        // Fall back to role-based permissions
         $permissions = self::ROLE_PERMISSIONS[$this->role] ?? [];
 
         return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
+    /**
+     * Get effective permissions (role + custom).
+     */
+    public function getEffectivePermissions(): array
+    {
+        // If admin, return all
+        if ($this->role === self::ROLE_ADMIN) {
+            return ['*'];
+        }
+
+        // Combine role permissions with custom permissions
+        $rolePermissions = self::ROLE_PERMISSIONS[$this->role] ?? [];
+        $customPermissions = $this->custom_permissions ?? [];
+
+        return array_unique(array_merge($rolePermissions, $customPermissions));
     }
 
     /**
