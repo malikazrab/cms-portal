@@ -24,14 +24,18 @@ cp .env.example .env
 ## Step 3: Create & Migrate Database
 
 ```bash
-# Create SQLite database file
-touch database/database.sqlite
+# Create MySQL database (if not already created)
+mysql -u root -p << EOF
+CREATE DATABASE IF NOT EXISTS cms_portal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+EOF
 
 # Run all migrations
 php artisan migrate
 ```
 
-This creates all required tables in the SQLite database.
+This creates all required tables in the MySQL database.
+
+**Note**: If you need to switch back to SQLite, see the [MIGRATION_TO_MYSQL.md](MIGRATION_TO_MYSQL.md) file for instructions.
 
 ## Step 4: Seed Database with Default User
 
@@ -75,18 +79,19 @@ The application should now be accessible at `http://localhost:8000`
 
 ## Troubleshooting
 
-### "database.sqlite doesn't exist" Error
+### "SQLSTATE[HY000] [1045] Access denied for user"
+Verify MySQL credentials in `.env` file:
 ```bash
-touch database/database.sqlite
-php artisan migrate
+# Check DB_USERNAME, DB_PASSWORD, and DB_HOST
+cat .env | grep DB_
 ```
 
-### "SQLSTATE[HY000] [14] unable to open database file"
-Make sure `database/` directory has write permissions:
+### "SQLSTATE[HY000] [2002] No such file or directory"
+MySQL server is not running. Start it:
 ```bash
-chmod 775 database/
-chmod 775 storage/
-chmod 775 bootstrap/cache/
+# Windows: Use Services or MySQL Workbench
+# macOS: brew services start mysql
+# Linux: sudo systemctl start mysql
 ```
 
 ### Migrations fail
@@ -98,6 +103,10 @@ php artisan db:seed
 
 ### Still can't login?
 1. Verify the user exists: `php artisan tinker` → `User::all()`
+2. Check database connection: `php artisan tinker` → `DB::connection()->getPDO()`
+
+### Need to use SQLite instead?
+See [MIGRATION_TO_MYSQL.md](MIGRATION_TO_MYSQL.md#rollback-to-sqlite-if-needed)
 2. Re-seed the database: `php artisan db:seed --force`
 3. Check `.env` file has correct `DB_CONNECTION=sqlite`
 
