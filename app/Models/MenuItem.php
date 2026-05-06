@@ -2,54 +2,15 @@
 
 namespace App\Models;
 
-<<<<<<< HEAD
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class MenuItem extends Model
-{
-    use HasFactory;
-    
-    protected $fillable = ['menu_id', 'parent_id', 'label', 'url', 'page_id', 'sort_order'];
-    
-    public function menu()
-    {
-        return $this->belongsTo(Menu::class);
-    }
-    
-    public function parent()
-    {
-        return $this->belongsTo(MenuItem::class, 'parent_id');
-    }
-    
-    public function children()
-    {
-        return $this->hasMany(MenuItem::class, 'parent_id')->orderBy('sort_order');
-    }
-    
-    public function page()
-    {
-        return $this->belongsTo(Page::class);
-    }
-    
-    public function getUrlAttribute()
-    {
-        if ($this->page_id) {
-            $page = $this->page;
-            if ($page) {
-                return '/pages/' . $page->slug;
-            }
-        }
-        return $this->attributes['url'] ?? '#';
-    }
-}
-=======
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MenuItem extends Model
 {
+    use HasFactory;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -99,14 +60,6 @@ class MenuItem extends Model
     }
 
     /**
-     * Get all descendants (children, grandchildren, etc.).
-     */
-    public function descendants(): HasMany
-    {
-        return $this->children();
-    }
-
-    /**
      * Get the page this menu item links to.
      */
     public function page(): BelongsTo
@@ -116,15 +69,15 @@ class MenuItem extends Model
 
     /**
      * Get the URL for this menu item.
-     * Returns page URL if page_id is set, otherwise returns the custom url.
+     * Falls back to '#' if neither a page nor a custom URL is set.
      */
-    public function getResolvedUrlAttribute(): ?string
+    public function getUrlAttribute(): string
     {
         if ($this->page_id && $this->page) {
             return route('pages.show', $this->page->slug);
         }
 
-        return $this->url;
+        return $this->attributes['url'] ?? '#';
     }
 
     /**
@@ -159,4 +112,3 @@ class MenuItem extends Model
         return $depth;
     }
 }
->>>>>>> b4934cb55f4fb0378ecc8f031cf3563c449771b5
