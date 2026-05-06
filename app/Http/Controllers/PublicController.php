@@ -20,7 +20,11 @@ class PublicController extends Controller
             ]));
         }
 
-        return view('public.home', $this->publicViewData());
+        $pages = Page::published()->orderBy('title')->get();
+
+        return view('public.home', $this->publicViewData([
+            'pages' => $pages,
+        ]));
     }
 
     public function blog()
@@ -87,8 +91,7 @@ class PublicController extends Controller
 
         return Page::published()
             ->where('slug', 'home')
-            ->first()
-            ?? Page::published()->orderBy('id')->first();
+            ->first();
     }
 
     protected function publicViewData(array $data = []): array

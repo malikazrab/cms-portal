@@ -18,5 +18,18 @@
                 <a href="{{ route('public.blog') }}" class="rounded bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700">Open Blog</a>
             </div>
         </div>
+
+        @if (!empty($pages) && $pages->isNotEmpty())
+            <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($pages as $page)
+                    <article class="rounded border bg-white p-6 shadow-sm">
+                        <h2 class="text-xl font-semibold text-gray-900">{{ $page->title }}</h2>
+                        <div class="mt-4 text-sm text-gray-600">
+                            <a href="{{ route('public.page', $page->slug) }}" class="text-blue-600 hover:text-blue-700">Open page</a>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        @endif
     </section>
 @endsection
