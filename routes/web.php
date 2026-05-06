@@ -12,6 +12,7 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlugController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\RoleManagementController;
+use App\Http\Controllers\MenuController;  // <--- ADD THIS LINE
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.auth'])
@@ -61,6 +62,17 @@ Route::middleware(['auth', 'admin.auth'])
         Route::get('activity-logs', [ActivityLogController::class, 'index'])->middleware('permission:activity.view')->name('activity-logs.index');
 
         Route::match(['get', 'post'], '/slug', [SlugController::class, 'generate'])->middleware('permission:pages.create')->name('slug.generate');
+
+        // ============================================================
+        // ========== MENU ROUTES (PHASE 2 - ADDED CORRECTLY) ==========
+        // ============================================================
+        Route::get('/menus', [MenuController::class, 'index'])->name('menus.index');
+        Route::get('/menus/create', [MenuController::class, 'create'])->name('menus.create');
+        Route::post('/menus', [MenuController::class, 'store'])->name('menus.store');
+        Route::get('/menus/{menu}/edit', [MenuController::class, 'edit'])->name('menus.edit');
+        Route::put('/menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
+        Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
+        Route::post('/menus/{menu}/set-default', [MenuController::class, 'setDefault'])->name('menus.set-default');
     });
 
 Route::middleware('throttle:60,1')->group(function () {
@@ -80,6 +92,7 @@ Route::middleware(['auth', 'activity'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 Route::get('/admin/pages/create', [PageController::class, 'create'])->name('admin.pages.create');
 Route::post('/admin/pages', [PageController::class, 'store'])->name('admin.pages.store');
 Route::put('/admin/pages/{page}', [PageController::class, 'update'])->name('admin.pages.update'); 

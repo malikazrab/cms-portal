@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Page;
+use App\Models\Menu;  // <--- ADD THIS LINE
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -18,6 +19,9 @@ class DashboardController extends Controller
         $draftPages = Page::where('status', 'draft')->count();
         $latestPages = Page::latest()->take(5)->get();
         $latestPosts = Post::with('category')->latest()->take(5)->get();
+        
+        // For Menu Widget
+        $menus = Menu::withCount('items')->get();
 
         return view('admin.dashboard', compact(
             'totalPosts',
@@ -27,7 +31,8 @@ class DashboardController extends Controller
             'publishedPages',
             'draftPages',
             'latestPages',
-            'latestPosts'
+            'latestPosts',
+            'menus'
         ));
     }
 }
