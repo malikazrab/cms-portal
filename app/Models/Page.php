@@ -18,4 +18,13 @@ class Page extends Model
     {
         return $query->where('status', 'published');
     }
+    public function versions()
+{
+    return $this->hasMany(PageVersion::class)->orderBy('version_number', 'desc');
+}
+
+public function latestVersion()
+{
+    return $this->hasOne(PageVersion::class)->latestOfMany('version_number');
+}
 }

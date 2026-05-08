@@ -6,51 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('page_versions', function (Blueprint $table) {
-            // Primary key
-            $table->id(); // BIGINT UNSIGNED auto-increment
-
-            // Foreign key to pages table (cascade delete)
-            $table->unsignedBigInteger('page_id');
-            $table->foreign('page_id')
-                  ->references('id')
-                  ->on('pages')
-                  ->cascadeOnDelete();
-
-            // Version number (increments per page)
+            $table->id();
+            $table->foreignId('page_id')->constrained()->cascadeOnDelete();
             $table->unsignedSmallInteger('version_number');
-
-            // Content snapshot (JSON)
             $table->longText('content');
-
-            // Optional change note
-            $table->string('change_note', 255)->nullable();
-
-            // Who saved this version (null if user deleted)
-            $table->unsignedBigInteger('saved_by')->nullable();
-            $table->foreign('saved_by')
-                  ->references('id')
-                  ->on('users')
-                  ->nullOnDelete();
-
-            // Created timestamp (no updated_at)
-            $table->timestamp('created_at');
-
-            // Required indexes
+            $table->string('change_note')->nullable();
+            $table->foreignId('saved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+            
             $table->index(['page_id', 'version_number']);
-            $table->index('page_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('page_versions');
     }

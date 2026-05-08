@@ -121,6 +121,16 @@
                                 <i class="fas fa-history w-4 mr-2 text-gray-400"></i> Activity Logs
                             </a>
                         @endif
+                        @if (auth()->user()?->hasPermission('settings.manage'))
+                            <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.backup.index') }}">
+                                <i class="fas fa-database w-4 mr-2 text-gray-400"></i> Backup & Restore
+                            </a>
+                        @endif
+                        @if (auth()->user()?->hasPermission('users.manage'))
+                            <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.sessions.index') }}">
+                                <i class="fas fa-wifi w-4 mr-2 text-gray-400"></i> Active Sessions
+                            </a>
+                        @endif
                     </div>
                 </nav>
             </aside>

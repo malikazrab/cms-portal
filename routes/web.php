@@ -4,15 +4,18 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PageVersionController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SlugController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\RoleManagementController;
-use App\Http\Controllers\MenuController;  // <--- ADD THIS LINE
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'admin.auth'])
@@ -48,6 +51,14 @@ Route::middleware(['auth', 'admin.auth'])
         Route::post('/settings', [SettingController::class, 'update'])->middleware('permission:settings.manage')->name('settings.update');
         Route::get('/settings/sections/{section}', [SettingController::class, 'editSection'])->middleware('permission:settings.manage')->name('settings.sections.edit');
 
+        Route::get('/backup', [BackupController::class, 'index'])->middleware('permission:settings.manage')->name('backup.index');
+        Route::post('/backup/create', [BackupController::class, 'create'])->middleware('permission:settings.manage')->name('backup.create');
+        Route::post('/backup/restore', [BackupController::class, 'restore'])->middleware('permission:settings.manage')->name('backup.restore');
+
+        Route::get('/sessions', [SessionController::class, 'index'])->middleware('permission:users.manage')->name('sessions.index');
+        Route::delete('/sessions/{sessionId}', [SessionController::class, 'destroy'])->middleware('permission:users.manage')->name('sessions.destroy');
+        Route::delete('/sessions', [SessionController::class, 'destroyAll'])->middleware('permission:users.manage')->name('sessions.destroy-all');
+
         Route::get('users', [UserManagementController::class, 'index'])->middleware('permission:users.manage')->name('users.index');
         Route::get('users/create', [UserManagementController::class, 'create'])->middleware('permission:users.manage')->name('users.create');
         Route::post('users', [UserManagementController::class, 'store'])->middleware('permission:users.manage')->name('users.store');
@@ -64,7 +75,7 @@ Route::middleware(['auth', 'admin.auth'])
         Route::match(['get', 'post'], '/slug', [SlugController::class, 'generate'])->middleware('permission:pages.create')->name('slug.generate');
 
         // ============================================================
-        // ========== MENU ROUTES (PHASE 2 - ADDED CORRECTLY) ==========
+        // ========== MENU ROUTES (PHASE 2) ==========================
         // ============================================================
         Route::get('/menus', [MenuController::class, 'index'])->name('menus.index');
         Route::get('/menus/create', [MenuController::class, 'create'])->name('menus.create');
@@ -73,6 +84,23 @@ Route::middleware(['auth', 'admin.auth'])
         Route::put('/menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
         Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
         Route::post('/menus/{menu}/set-default', [MenuController::class, 'setDefault'])->name('menus.set-default');
+
+        // ============================================================
+        // ========== PAGE VERSIONING ROUTES (PHASE 2) ================
+        // ============================================================
+        Route::prefix('pages/{page}')->group(function () {
+            Route::get('/versions', [PageVersionController::class, 'index'])
+                ->middleware('permission:pages.view')
+                ->name('pages.versions.index');
+
+            Route::get('/versions/{version}', [PageVersionController::class, 'show'])
+                ->middleware('permission:pages.view')
+                ->name('pages.versions.show');
+
+            Route::post('/versions/{version}/restore', [PageVersionController::class, 'restore'])
+                ->middleware('permission:pages.update')
+                ->name('pages.versions.restore');
+        });
     });
 
 Route::middleware('throttle:60,1')->group(function () {
@@ -92,9 +120,5 @@ Route::middleware(['auth', 'activity'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
-Route::get('/admin/pages/create', [PageController::class, 'create'])->name('admin.pages.create');
-Route::post('/admin/pages', [PageController::class, 'store'])->name('admin.pages.store');
-Route::put('/admin/pages/{page}', [PageController::class, 'update'])->name('admin.pages.update'); 
 
 require __DIR__.'/auth.php';
