@@ -12,7 +12,7 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     <header class="border-b border-gray-200 bg-white">
-        <div class="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 lg:flex-row lg:items-center lg:justify-between">
+        <div class="mx-auto flex flex-col gap-5 px-4 py-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <a href="{{ route('public.home') }}" class="text-2xl font-semibold text-gray-900">{{ $siteName ?? config('app.name', 'CMS Portal') }}</a>
                 @if (!empty($siteDescription))
@@ -31,7 +31,7 @@
 
         @if (!empty($headerPage))
             <div class="border-t border-gray-100 bg-white">
-                <div class="mx-auto max-w-6xl px-4 py-6">
+                <div class="mx-auto px-4 py-6">
                     @include('public.partials.builder-content', ['pageModel' => $headerPage, 'wrapInCard' => false, 'showTitle' => false])
                 </div>
             </div>
