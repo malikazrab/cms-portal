@@ -1,0 +1,15 @@
+/* Default Theme - Custom CSS */
+/* Add your custom styles below */
+
+body {
+    font-family: var(--body-font, 'Inter, sans-serif');
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font, 'Inter, sans-serif');
+}
+
+/* Theme transition for smooth color changes */
+a, button, .theme-transition {
+    transition: all 0.3s ease;
+}

@@ -1,0 +1,38 @@
+{
+    "name": "Default Theme",
+    "slug": "default",
+    "version": "1.0.0",
+    "author": "CMS Portal",
+    "description": "The default clean theme for CMS Portal",
+    "screenshot": "screenshot.png",
+    "settings": {
+        "colors": {
+            "primary": "#0ea5e9",
+            "secondary": "#8b5cf6",
+            "accent": "#f59e0b",
+            "background": "#ffffff",
+            "text": "#1e293b",
+            "header_bg": "#ffffff",
+            "footer_bg": "#f8fafc"
+        },
+        "fonts": {
+            "heading": "Inter, sans-serif",
+            "body": "Inter, sans-serif",
+            "heading_weight": "700",
+            "body_size": "16px"
+        },
+        "layout": {
+            "container": "full-width",
+            "sidebar": "right",
+            "header_style": "centered",
+            "footer_columns": 4
+        }
+    },
+    "templates": {
+        "home": "templates/home.blade.php",
+        "page": "templates/page.blade.php",
+        "blog": "templates/blog.blade.php",
+        "header": "templates/header.blade.php",
+        "footer": "templates/footer.blade.php"
+    }
+}

@@ -1,0 +1,32 @@
+{
+    "name": "crystalo-interior-design-html-template",
+    "slug": "crystalo-interior-design-html-template",
+    "version": "1.0.0",
+    "author": "Unknown",
+    "description": "Imported theme",
+    "screenshot": "screenshot.png",
+    "settings": {
+        "colors": {
+            "primary": "#0ea5e9",
+            "secondary": "#8b5cf6",
+            "accent": "#f59e0b",
+            "background": "#ffffff",
+            "text": "#1e293b"
+        },
+        "fonts": {
+            "heading": "Inter, sans-serif",
+            "body": "Inter, sans-serif"
+        },
+        "layout": {
+            "container": "full-width",
+            "sidebar": "right"
+        }
+    },
+    "templates": {
+        "home": "templates/home.blade.php",
+        "page": "templates/page.blade.php",
+        "blog": "templates/blog.blade.php",
+        "header": "templates/header.blade.php",
+        "footer": "templates/footer.blade.php"
+    }
+}

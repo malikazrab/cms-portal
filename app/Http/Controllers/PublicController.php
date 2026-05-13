@@ -97,6 +97,10 @@ class PublicController extends Controller
     protected function publicViewData(array $data = []): array
     {
         $settings = Setting::pluck('value', 'key');
+            // Load active theme
+        $activeTheme = \App\Models\Theme::getActive();
+        $themeSettings = $activeTheme ? $activeTheme->settings : [];
+        $themeTemplates = $activeTheme ? ($activeTheme->settings['templates'] ?? []) : [];
         $homePageId = $settings->get('home_page_id') ?: $this->resolveHomePage()?->id;
         $headerPageId = $settings->get('header_page_id');
         $footerPageId = $settings->get('footer_page_id');
@@ -112,6 +116,8 @@ class PublicController extends Controller
                 ->get(),
             'headerPage' => $headerPageId ? Page::published()->find($headerPageId) : null,
             'footerPage' => $footerPageId ? Page::published()->find($footerPageId) : null,
+            'activeTheme' => $activeTheme,           // <-- ADD THIS
+            'themeSettings' => $themeSettings,        // <-- ADD THIS
         ]);
     }
 }
