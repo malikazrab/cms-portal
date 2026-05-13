@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $latestPosts = Post::with('category')->latest()->take(5)->get();
         
         // For Menu Widget
-        $menus = Menu::withCount('items')->get();
+        $menus = Menu::withCount('menuItems')->get();
 
         return view('admin.dashboard', compact(
             'totalPosts',

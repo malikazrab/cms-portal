@@ -18,7 +18,7 @@ class MenuController extends Controller
     // List all menus (for index page and dashboard widget)
     public function index(Request $request)
     {
-        $menus = Menu::withCount('items')->get();
+        $menus = Menu::withCount('menuItems')->get();
         
         // If request is from dashboard widget
         if ($request->has('dashboard')) {

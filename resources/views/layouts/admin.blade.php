@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') | {{ config('app.name', 'CMS Portal') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Font Awesome for icons (Phase 2) -->
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -71,30 +71,30 @@
                         @endif
                     </div>
 
-                    <!-- ==================== APPEARANCE SECTION (NEW - PHASE 2) ==================== -->
+                    <!-- ==================== APPEARANCE SECTION (COMING IN PHASE 2) ==================== -->
                     <div class="pt-2 mt-2 border-t border-gray-200">
                         <p class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Appearance</p>
                         
-                        <!-- Menus - Task FE-1, FE-2 -->
-                        @can('menus.view')
+                        <!-- Menus - Working now -->
+                        @if (auth()->user()?->hasPermission('admin.access'))
                             <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.menus.index') }}">
                                 <i class="fas fa-bars w-4 mr-2 text-gray-400"></i> Menus
                             </a>
-                        @endcan
+                        @endif
                         
-                        <!-- Headers - Task FE-4 -->
-                        @can('headers.view')
-                            <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.headers.index') }}">
-                                <i class="fas fa-arrow-up w-4 mr-2 text-gray-400"></i> Headers
+                        <!-- Headers - Disabled until Phase 2 (WS-1) -->
+                        @if (auth()->user()?->hasPermission('admin.access'))
+                            <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Headers feature coming in Phase 2 update', 'info'); return false;">
+                                <i class="fas fa-arrow-up w-4 mr-2 text-gray-400"></i> Headers (Soon)
                             </a>
-                        @endcan
+                        @endif
                         
-                        <!-- Footers - Task FE-4 -->
-                        @can('footers.view')
-                            <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.footers.index') }}">
-                                <i class="fas fa-arrow-down w-4 mr-2 text-gray-400"></i> Footers
+                        <!-- Footers - Disabled until Phase 2 (WS-1) -->
+                        @if (auth()->user()?->hasPermission('admin.access'))
+                            <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Footers feature coming in Phase 2 update', 'info'); return false;">
+                                <i class="fas fa-arrow-down w-4 mr-2 text-gray-400"></i> Footers (Soon)
                             </a>
-                        @endcan
+                        @endif
                     </div>
 
                     <!-- ==================== SETTINGS SECTION ==================== -->
@@ -157,7 +157,7 @@
         </div>
     </div>
 
-    <!-- Toast Notification System for Phase 2 -->
+    <!-- Toast Notification System -->
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script>

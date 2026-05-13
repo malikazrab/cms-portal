@@ -1,0 +1,1267 @@
+{
+  "project": {
+    "name": "CMS Portal",
+    "version": "1.0.0",
+    "description": "A lightweight, modern content management system built with Laravel 13 for creating and managing blog posts, custom pages, media, and site settings",
+    "lastUpdated": "2026-05-12",
+    "author": "Development Team",
+    "license": "MIT",
+    "status": "Production"
+  },
+  "techStack": {
+    "backend": {
+      "framework": "Laravel 13",
+      "language": "PHP 8.3+",
+      "authentication": "Laravel Breeze",
+      "database": "SQLite (default) / MySQL",
+      "orm": "Eloquent",
+      "htmlSanitizer": "Mews Purifier 3.4"
+    },
+    "frontend": {
+      "buildTool": "Vite 8.0",
+      "cssFramework": "Tailwind CSS 3.1",
+      "javascript": "Alpine.js 3.4",
+      "cssPreprocessor": "PostCSS 8.4",
+      "httpClient": "Axios 1.15.2"
+    },
+    "nodePackages": {
+      "devDependencies": [
+        "@tailwindcss/forms@^0.5.2",
+        "@tailwindcss/vite@^4.0.0",
+        "alpinejs@^3.4.2",
+        "autoprefixer@^10.4.2",
+        "concurrently@^9.0.1",
+        "laravel-vite-plugin@^3.0.0",
+        "postcss@^8.4.31",
+        "tailwindcss@^3.1.0",
+        "vite@^8.0.0"
+      ],
+      "dependencies": [
+        "axios@^1.15.2"
+      ]
+    },
+    "phpPackages": {
+      "required": [
+        "php@^8.3",
+        "laravel/breeze@^2.4",
+        "laravel/framework@^13.0",
+        "laravel/tinker@^3.0",
+        "mews/purifier@^3.4"
+      ],
+      "dev": [
+        "fakerphp/faker@^1.23",
+        "laravel/pail@^1.2.5",
+        "laravel/pint@^1.27",
+        "mockery/mockery@^1.6",
+        "nunomaduro/collision@^8.6",
+        "phpunit/phpunit@^12.5.12"
+      ]
+    }
+  },
+  "database": {
+    "driver": "sqlite",
+    "alternativeDriver": "mysql",
+    "tables": [
+      {
+        "name": "users",
+        "description": "System users with roles and permissions",
+        "columns": [
+          "id",
+          "name",
+          "email",
+          "password",
+          "email_verified_at",
+          "role",
+          "permissions",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "categories",
+        "description": "Blog post categories",
+        "columns": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "tags",
+        "description": "Blog post tags",
+        "columns": [
+          "id",
+          "name",
+          "slug",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "posts",
+        "description": "Blog posts with SEO metadata and featured images",
+        "columns": [
+          "id",
+          "title",
+          "slug",
+          "content",
+          "excerpt",
+          "featured_image",
+          "category_id",
+          "author_id",
+          "status",
+          "seo_title",
+          "seo_description",
+          "seo_keywords",
+          "published_at",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "post_tag",
+        "description": "Many-to-many relationship between posts and tags",
+        "columns": [
+          "post_id",
+          "tag_id"
+        ]
+      },
+      {
+        "name": "pages",
+        "description": "Custom pages with drag-and-drop builder support",
+        "columns": [
+          "id",
+          "title",
+          "slug",
+          "content",
+          "status",
+          "featured_image",
+          "is_home_page",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "page_versions",
+        "description": "Version history for pages",
+        "columns": [
+          "id",
+          "page_id",
+          "content",
+          "version_number",
+          "created_at"
+        ]
+      },
+      {
+        "name": "media",
+        "description": "Uploaded files and assets",
+        "columns": [
+          "id",
+          "filename",
+          "path",
+          "mime_type",
+          "size",
+          "uploader_id",
+          "access_count",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "settings",
+        "description": "Site-wide configuration settings",
+        "columns": [
+          "id",
+          "key",
+          "value",
+          "type",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "header_templates",
+        "description": "Header content templates",
+        "columns": [
+          "id",
+          "name",
+          "content",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "footer_templates",
+        "description": "Footer content templates",
+        "columns": [
+          "id",
+          "name",
+          "content",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "menus",
+        "description": "Navigation menus",
+        "columns": [
+          "id",
+          "name",
+          "slug",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "menu_items",
+        "description": "Menu items with nested structure",
+        "columns": [
+          "id",
+          "menu_id",
+          "title",
+          "url",
+          "order",
+          "parent_id",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      {
+        "name": "activity_logs",
+        "description": "Audit trail of user actions",
+        "columns": [
+          "id",
+          "user_id",
+          "action",
+          "model_type",
+          "model_id",
+          "description",
+          "ip_address",
+          "user_agent",
+          "created_at"
+        ]
+      },
+      {
+        "name": "cache",
+        "description": "Application cache table",
+        "columns": [
+          "key",
+          "value",
+          "expiration"
+        ]
+      },
+      {
+        "name": "jobs",
+        "description": "Queue job processing",
+        "columns": [
+          "id",
+          "queue",
+          "payload",
+          "attempts",
+          "reserved_at",
+          "available_at",
+          "created_at"
+        ]
+      }
+    ],
+    "migrations": [
+      "0001_01_01_000000_create_users_table",
+      "0001_01_01_000001_create_cache_table",
+      "0001_01_01_000002_create_jobs_table",
+      "2026_04_28_101602_add_role_to_users_table",
+      "2026_04_28_101718_create_categories_table",
+      "2026_04_28_101838_create_tags_table",
+      "2026_04_28_101950_create_posts_table",
+      "2026_04_28_102105_create_post_tag_table",
+      "2026_04_28_102202_create_pages_table",
+      "2026_04_28_102253_create_media_table",
+      "2026_04_28_102333_create_settings_table",
+      "2026_05_04_160000_create_activity_logs_table",
+      "2026_05_04_170000_add_new_roles_to_users_table",
+      "2026_05_05_100000_add_custom_permissions_to_users_table",
+      "2026_05_05_125321_create_page_versions_table",
+      "2026_05_05_create_header_footer_templates_table",
+      "2026_05_05_create_menus_table",
+      "2026_05_05_create_menu_items_table",
+      "2026_05_06_075548_create_menu_items_table"
+    ]
+  },
+  "models": [
+    {
+      "name": "User",
+      "file": "app/Models/User.php",
+      "description": "System user with roles and permissions",
+      "relationships": [
+        "hasMany: Posts (as author)",
+        "hasMany: ActivityLog",
+        "hasMany: Media (as uploader)"
+      ],
+      "key": "id"
+    },
+    {
+      "name": "Post",
+      "file": "app/Models/Post.php",
+      "description": "Blog post with categories, tags, and SEO metadata",
+      "relationships": [
+        "belongsTo: Category",
+        "belongsTo: User (as author)",
+        "belongsToMany: Tag",
+        "hasMany: ActivityLog"
+      ],
+      "key": "id",
+      "attributes": [
+        "title",
+        "slug",
+        "content",
+        "excerpt",
+        "featured_image",
+        "status",
+        "seo_title",
+        "seo_description",
+        "seo_keywords"
+      ]
+    },
+    {
+      "name": "Page",
+      "file": "app/Models/Page.php",
+      "description": "Custom pages with page builder support",
+      "relationships": [
+        "hasMany: PageVersion",
+        "hasMany: ActivityLog"
+      ],
+      "key": "id",
+      "attributes": [
+        "title",
+        "slug",
+        "content",
+        "status",
+        "featured_image",
+        "is_home_page"
+      ]
+    },
+    {
+      "name": "PageVersion",
+      "file": "app/Models/PageVersion.php",
+      "description": "Version history for pages",
+      "relationships": [
+        "belongsTo: Page"
+      ],
+      "key": "id"
+    },
+    {
+      "name": "Category",
+      "file": "app/Models/Category.php",
+      "description": "Blog post category",
+      "relationships": [
+        "hasMany: Post"
+      ],
+      "key": "id",
+      "attributes": [
+        "name",
+        "slug",
+        "description"
+      ]
+    },
+    {
+      "name": "Tag",
+      "file": "app/Models/Tag.php",
+      "description": "Blog post tag",
+      "relationships": [
+        "belongsToMany: Post"
+      ],
+      "key": "id",
+      "attributes": [
+        "name",
+        "slug"
+      ]
+    },
+    {
+      "name": "Media",
+      "file": "app/Models/Media.php",
+      "description": "Uploaded files and assets",
+      "relationships": [
+        "belongsTo: User (as uploader)"
+      ],
+      "key": "id",
+      "attributes": [
+        "filename",
+        "path",
+        "mime_type",
+        "size",
+        "access_count"
+      ]
+    },
+    {
+      "name": "Setting",
+      "file": "app/Models/Setting.php",
+      "description": "Site configuration settings",
+      "relationships": [],
+      "key": "id",
+      "attributes": [
+        "key",
+        "value",
+        "type"
+      ]
+    },
+    {
+      "name": "HeaderTemplate",
+      "file": "app/Models/HeaderTemplate.php",
+      "description": "Header content template",
+      "relationships": [],
+      "key": "id"
+    },
+    {
+      "name": "FooterTemplate",
+      "file": "app/Models/FooterTemplate.php",
+      "description": "Footer content template",
+      "relationships": [],
+      "key": "id"
+    },
+    {
+      "name": "Menu",
+      "file": "app/Models/Menu.php",
+      "description": "Navigation menu",
+      "relationships": [
+        "hasMany: MenuItem"
+      ],
+      "key": "id"
+    },
+    {
+      "name": "MenuItem",
+      "file": "app/Models/MenuItem.php",
+      "description": "Individual menu item with nesting support",
+      "relationships": [
+        "belongsTo: Menu",
+        "belongsTo: MenuItem (parent)",
+        "hasMany: MenuItem (children)"
+      ],
+      "key": "id"
+    },
+    {
+      "name": "ActivityLog",
+      "file": "app/Models/ActivityLog.php",
+      "description": "Audit trail of user actions",
+      "relationships": [
+        "belongsTo: User"
+      ],
+      "key": "id",
+      "attributes": [
+        "action",
+        "model_type",
+        "model_id",
+        "description",
+        "ip_address",
+        "user_agent"
+      ]
+    }
+  ],
+  "controllers": [
+    {
+      "name": "PostController",
+      "file": "app/Http/Controllers/PostController.php",
+      "methods": [
+        "index - List all posts",
+        "create - Show create form",
+        "store - Store new post",
+        "edit - Show edit form",
+        "update - Update post",
+        "destroy - Delete post"
+      ],
+      "permissions": [
+        "posts.view",
+        "posts.create",
+        "posts.update",
+        "posts.delete"
+      ]
+    },
+    {
+      "name": "PageController",
+      "file": "app/Http/Controllers/PageController.php",
+      "methods": [
+        "index - List all pages",
+        "create - Show create form",
+        "store - Store new page",
+        "edit - Show edit form",
+        "update - Update page",
+        "destroy - Delete page"
+      ],
+      "permissions": [
+        "pages.view",
+        "pages.create",
+        "pages.update",
+        "pages.delete"
+      ]
+    },
+    {
+      "name": "MediaController",
+      "file": "app/Http/Controllers/MediaController.php",
+      "methods": [
+        "index - List media files",
+        "upload - Upload new file",
+        "destroy - Delete file"
+      ],
+      "permissions": [
+        "media.view",
+        "media.upload",
+        "media.delete"
+      ]
+    },
+    {
+      "name": "CategoryController",
+      "file": "app/Http/Controllers/CategoryController.php",
+      "methods": [
+        "index - List categories",
+        "store - Create category",
+        "destroy - Delete category"
+      ],
+      "permissions": [
+        "categories.view",
+        "categories.create",
+        "categories.delete"
+      ]
+    },
+    {
+      "name": "SettingController",
+      "file": "app/Http/Controllers/SettingController.php",
+      "methods": [
+        "index - Get settings",
+        "update - Update settings"
+      ],
+      "permissions": [
+        "settings.manage"
+      ]
+    },
+    {
+      "name": "DashboardController",
+      "file": "app/Http/Controllers/DashboardController.php",
+      "methods": [
+        "index - Show dashboard"
+      ],
+      "permissions": [
+        "dashboard.view"
+      ]
+    },
+    {
+      "name": "UserManagementController",
+      "file": "app/Http/Controllers/UserManagementController.php",
+      "methods": [
+        "index - List users",
+        "show - Show user details",
+        "store - Create user",
+        "update - Update user",
+        "destroy - Delete user"
+      ],
+      "permissions": [
+        "users.manage"
+      ]
+    },
+    {
+      "name": "RoleManagementController",
+      "file": "app/Http/Controllers/RoleManagementController.php",
+      "methods": [
+        "index - List roles",
+        "store - Create role",
+        "update - Update role"
+      ],
+      "permissions": [
+        "roles.manage"
+      ]
+    },
+    {
+      "name": "PublicController",
+      "file": "app/Http/Controllers/PublicController.php",
+      "methods": [
+        "home - Display home page",
+        "page - Display custom page",
+        "blog - Display blog listing",
+        "post - Display single post"
+      ],
+      "permissions": []
+    },
+    {
+      "name": "ActivityLogController",
+      "file": "app/Http/Controllers/ActivityLogController.php",
+      "methods": [
+        "index - View activity logs"
+      ],
+      "permissions": [
+        "activity.view"
+      ]
+    },
+    {
+      "name": "PageVersionController",
+      "file": "app/Http/Controllers/PageVersionController.php",
+      "methods": [
+        "index - List page versions",
+        "show - View specific version",
+        "restore - Restore from version"
+      ],
+      "permissions": []
+    },
+    {
+      "name": "MenuController",
+      "file": "app/Http/Controllers/MenuController.php",
+      "methods": [
+        "index - List menus",
+        "store - Create menu",
+        "update - Update menu",
+        "destroy - Delete menu"
+      ],
+      "permissions": [
+        "menus.manage"
+      ]
+    },
+    {
+      "name": "BackupController",
+      "file": "app/Http/Controllers/BackupController.php",
+      "methods": [
+        "create - Create database backup",
+        "download - Download backup"
+      ],
+      "permissions": [
+        "backups.manage"
+      ]
+    }
+  ],
+  "routes": {
+    "public": [
+      {
+        "method": "GET",
+        "path": "/",
+        "controller": "PublicController@home",
+        "name": "home",
+        "description": "Display homepage"
+      },
+      {
+        "method": "GET",
+        "path": "/blog",
+        "controller": "PublicController@blog",
+        "name": "blog",
+        "description": "Display blog listing"
+      },
+      {
+        "method": "GET",
+        "path": "/blog/{slug}",
+        "controller": "PublicController@post",
+        "name": "post.show",
+        "description": "Display single post"
+      },
+      {
+        "method": "GET",
+        "path": "/pages/{slug}",
+        "controller": "PublicController@page",
+        "name": "page.show",
+        "description": "Display custom page"
+      },
+      {
+        "method": "GET",
+        "path": "/media/{path}",
+        "controller": "MediaController@download",
+        "name": "media.show",
+        "description": "Serve media file"
+      }
+    ],
+    "admin": [
+      {
+        "method": "GET",
+        "path": "/admin/dashboard",
+        "controller": "DashboardController@index",
+        "name": "admin.dashboard",
+        "permissions": "dashboard.view"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/posts",
+        "controller": "PostController@index",
+        "name": "admin.posts.index",
+        "permissions": "posts.view"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/posts/create",
+        "controller": "PostController@create",
+        "name": "admin.posts.create",
+        "permissions": "posts.create"
+      },
+      {
+        "method": "POST",
+        "path": "/admin/posts",
+        "controller": "PostController@store",
+        "name": "admin.posts.store",
+        "permissions": "posts.create"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/posts/{post}/edit",
+        "controller": "PostController@edit",
+        "name": "admin.posts.edit",
+        "permissions": "posts.update"
+      },
+      {
+        "method": "PUT",
+        "path": "/admin/posts/{post}",
+        "controller": "PostController@update",
+        "name": "admin.posts.update",
+        "permissions": "posts.update"
+      },
+      {
+        "method": "DELETE",
+        "path": "/admin/posts/{post}",
+        "controller": "PostController@destroy",
+        "name": "admin.posts.destroy",
+        "permissions": "posts.delete"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/pages",
+        "controller": "PageController@index",
+        "name": "admin.pages.index",
+        "permissions": "pages.view"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/pages/create",
+        "controller": "PageController@create",
+        "name": "admin.pages.create",
+        "permissions": "pages.create"
+      },
+      {
+        "method": "POST",
+        "path": "/admin/pages",
+        "controller": "PageController@store",
+        "name": "admin.pages.store",
+        "permissions": "pages.create"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/pages/{page}/edit",
+        "controller": "PageController@edit",
+        "name": "admin.pages.edit",
+        "permissions": "pages.update"
+      },
+      {
+        "method": "PUT",
+        "path": "/admin/pages/{page}",
+        "controller": "PageController@update",
+        "name": "admin.pages.update",
+        "permissions": "pages.update"
+      },
+      {
+        "method": "DELETE",
+        "path": "/admin/pages/{page}",
+        "controller": "PageController@destroy",
+        "name": "admin.pages.destroy",
+        "permissions": "pages.delete"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/media",
+        "controller": "MediaController@index",
+        "name": "admin.media.index",
+        "permissions": "media.view"
+      },
+      {
+        "method": "POST",
+        "path": "/admin/media/upload",
+        "controller": "MediaController@upload",
+        "name": "admin.media.upload",
+        "permissions": "media.upload"
+      },
+      {
+        "method": "DELETE",
+        "path": "/admin/media/{medium}",
+        "controller": "MediaController@destroy",
+        "name": "admin.media.destroy",
+        "permissions": "media.delete"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/categories",
+        "controller": "CategoryController@index",
+        "name": "admin.categories.index",
+        "permissions": "categories.view"
+      },
+      {
+        "method": "POST",
+        "path": "/admin/categories",
+        "controller": "CategoryController@store",
+        "name": "admin.categories.store",
+        "permissions": "categories.create"
+      },
+      {
+        "method": "DELETE",
+        "path": "/admin/categories/{category}",
+        "controller": "CategoryController@destroy",
+        "name": "admin.categories.destroy",
+        "permissions": "categories.delete"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/settings",
+        "controller": "SettingController@index",
+        "name": "admin.settings.index",
+        "permissions": "settings.manage"
+      },
+      {
+        "method": "POST",
+        "path": "/admin/settings",
+        "controller": "SettingController@update",
+        "name": "admin.settings.update",
+        "permissions": "settings.manage"
+      }
+    ]
+  },
+  "userRoles": [
+    {
+      "role": "admin",
+      "description": "Full system access",
+      "permissions": [
+        "dashboard.view",
+        "posts.create",
+        "posts.view",
+        "posts.update",
+        "posts.delete",
+        "pages.create",
+        "pages.view",
+        "pages.update",
+        "pages.delete",
+        "categories.create",
+        "categories.view",
+        "categories.delete",
+        "media.upload",
+        "media.view",
+        "media.delete",
+        "settings.manage",
+        "users.manage",
+        "roles.manage",
+        "menus.manage",
+        "activity.view",
+        "backups.manage"
+      ]
+    },
+    {
+      "role": "editor",
+      "description": "Can manage posts and pages",
+      "permissions": [
+        "dashboard.view",
+        "posts.create",
+        "posts.view",
+        "posts.update",
+        "posts.delete",
+        "pages.create",
+        "pages.view",
+        "pages.update",
+        "pages.delete",
+        "categories.view",
+        "media.upload",
+        "media.view",
+        "activity.view"
+      ]
+    },
+    {
+      "role": "post_editor",
+      "description": "Can only manage posts",
+      "permissions": [
+        "dashboard.view",
+        "posts.create",
+        "posts.view",
+        "posts.update",
+        "posts.delete",
+        "categories.view",
+        "media.upload",
+        "media.view"
+      ]
+    },
+    {
+      "role": "page_editor",
+      "description": "Can only manage pages",
+      "permissions": [
+        "dashboard.view",
+        "pages.create",
+        "pages.view",
+        "pages.update",
+        "pages.delete",
+        "media.upload",
+        "media.view"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "Blog Post Management",
+      "description": "Create, edit, and publish blog posts with categories, tags, featured images, and SEO metadata",
+      "models": ["Post", "Category", "Tag"],
+      "controllers": ["PostController", "CategoryController"],
+      "status": "active"
+    },
+    {
+      "name": "Page Management",
+      "description": "Create and manage custom pages with page versioning and drag-and-drop builder support",
+      "models": ["Page", "PageVersion"],
+      "controllers": ["PageController", "PageVersionController"],
+      "status": "active"
+    },
+    {
+      "name": "Media Library",
+      "description": "Upload and manage media files with access tracking",
+      "models": ["Media"],
+      "controllers": ["MediaController"],
+      "status": "active"
+    },
+    {
+      "name": "Site Settings",
+      "description": "Configure site identity, home page, header, and footer content",
+      "models": ["Setting", "HeaderTemplate", "FooterTemplate"],
+      "controllers": ["SettingController", "HeaderTemplateController", "FooterTemplateController"],
+      "status": "active"
+    },
+    {
+      "name": "User Management",
+      "description": "Manage system users with role-based access control",
+      "models": ["User"],
+      "controllers": ["UserManagementController"],
+      "status": "active"
+    },
+    {
+      "name": "Activity Logging",
+      "description": "Track all user actions for audit purposes",
+      "models": ["ActivityLog"],
+      "controllers": ["ActivityLogController"],
+      "status": "active"
+    },
+    {
+      "name": "Navigation Menus",
+      "description": "Create and manage nested navigation menus",
+      "models": ["Menu", "MenuItem"],
+      "controllers": ["MenuController"],
+      "status": "active"
+    },
+    {
+      "name": "Public Website",
+      "description": "Display configurable home page, blog, and custom pages",
+      "controllers": ["PublicController"],
+      "status": "active"
+    },
+    {
+      "name": "Database Backup",
+      "description": "Create and restore database backups",
+      "controllers": ["BackupController"],
+      "status": "active"
+    }
+  ],
+  "authentication": {
+    "method": "Laravel Breeze",
+    "driver": "session",
+    "guards": [
+      {
+        "name": "web",
+        "driver": "session",
+        "provider": "users"
+      }
+    ],
+    "providers": [
+      {
+        "name": "users",
+        "driver": "eloquent",
+        "model": "App\\Models\\User"
+      }
+    ],
+    "loginRoute": "/login",
+    "registerRoute": "/register",
+    "adminRoute": "/admin/dashboard"
+  },
+  "middleware": [
+    {
+      "name": "auth",
+      "type": "authentication",
+      "description": "Require authenticated user"
+    },
+    {
+      "name": "admin.auth",
+      "type": "authorization",
+      "description": "Require admin role"
+    },
+    {
+      "name": "activity",
+      "type": "logging",
+      "description": "Log user actions to activity log"
+    },
+    {
+      "name": "permission",
+      "type": "authorization",
+      "description": "Check specific user permissions"
+    }
+  ],
+  "configuration": {
+    "files": [
+      {
+        "file": "config/app.php",
+        "description": "Application configuration"
+      },
+      {
+        "file": "config/auth.php",
+        "description": "Authentication configuration"
+      },
+      {
+        "file": "config/database.php",
+        "description": "Database connection configuration"
+      },
+      {
+        "file": "config/filesystems.php",
+        "description": "File system configuration"
+      },
+      {
+        "file": "config/features.php",
+        "description": "Feature flag configuration"
+      },
+      {
+        "file": "tailwind.config.js",
+        "description": "Tailwind CSS configuration"
+      },
+      {
+        "file": "vite.config.js",
+        "description": "Vite build tool configuration"
+      },
+      {
+        "file": "postcss.config.js",
+        "description": "PostCSS configuration"
+      }
+    ]
+  },
+  "services": [
+    {
+      "name": "ActivityLogger",
+      "file": "app/Services/ActivityLogger.php",
+      "description": "Service for logging user activities and actions",
+      "methods": [
+        "log - Record a user action"
+      ]
+    }
+  ],
+  "helpers": [
+    {
+      "name": "helpers.php",
+      "file": "app/Helpers/helpers.php",
+      "description": "Global helper functions"
+    },
+    {
+      "name": "DatabaseBackupHelper",
+      "file": "app/Helpers/DatabaseBackupHelper.php",
+      "description": "Helper for database backup operations"
+    },
+    {
+      "name": "FeatureHelper",
+      "file": "app/Helpers/FeatureHelper.php",
+      "description": "Helper for feature flag management"
+    }
+  ],
+  "directoryStructure": {
+    "app": {
+      "console": "Command classes for Artisan CLI",
+      "Helpers": "Reusable helper functions and classes",
+      "Http": {
+        "Controllers": "Request controllers",
+        "Middleware": "HTTP middleware",
+        "Requests": "Form request validation classes"
+      },
+      "Models": "Eloquent models",
+      "Policies": "Authorization policies",
+      "Providers": "Service providers",
+      "Services": "Business logic services",
+      "View": "Blade view components"
+    },
+    "bootstrap": "Application bootstrap files",
+    "config": "Configuration files",
+    "database": {
+      "factories": "Model factories for testing",
+      "migrations": "Database migrations",
+      "seeders": "Database seeders"
+    },
+    "public": "Web server root directory",
+    "resources": {
+      "css": "Tailwind CSS files",
+      "js": "Alpine.js and application JavaScript",
+      "views": "Blade templates"
+    },
+    "routes": "Route definitions",
+    "storage": "Application file storage",
+    "tests": "Unit and feature tests",
+    "vendor": "Composer dependencies"
+  },
+  "commands": [
+    {
+      "command": "composer run setup",
+      "description": "Initial project setup with dependencies and database"
+    },
+    {
+      "command": "composer run dev",
+      "description": "Start development server with all services"
+    },
+    {
+      "command": "php artisan migrate",
+      "description": "Run database migrations"
+    },
+    {
+      "command": "php artisan db:seed",
+      "description": "Seed database with initial data"
+    },
+    {
+      "command": "php artisan serve",
+      "description": "Start Laravel development server"
+    },
+    {
+      "command": "npm run dev",
+      "description": "Start Vite development server"
+    },
+    {
+      "command": "npm run build",
+      "description": "Build assets for production"
+    },
+    {
+      "command": "composer test",
+      "description": "Run PHPUnit tests"
+    }
+  ],
+  "endpoints": {
+    "baseUrl": "http://localhost:8000",
+    "publicEndpoints": [
+      {
+        "path": "/",
+        "method": "GET",
+        "description": "Homepage"
+      },
+      {
+        "path": "/blog",
+        "method": "GET",
+        "description": "Blog listing"
+      },
+      {
+        "path": "/blog/{slug}",
+        "method": "GET",
+        "description": "Single post"
+      },
+      {
+        "path": "/pages/{slug}",
+        "method": "GET",
+        "description": "Custom page"
+      },
+      {
+        "path": "/login",
+        "method": "GET/POST",
+        "description": "User login"
+      },
+      {
+        "path": "/register",
+        "method": "GET/POST",
+        "description": "User registration"
+      }
+    ],
+    "adminEndpoints": [
+      {
+        "path": "/admin/dashboard",
+        "method": "GET",
+        "description": "Admin dashboard"
+      },
+      {
+        "path": "/admin/posts",
+        "method": "GET/POST/PUT/DELETE",
+        "description": "Post management"
+      },
+      {
+        "path": "/admin/pages",
+        "method": "GET/POST/PUT/DELETE",
+        "description": "Page management"
+      },
+      {
+        "path": "/admin/media",
+        "method": "GET/POST/DELETE",
+        "description": "Media management"
+      },
+      {
+        "path": "/admin/categories",
+        "method": "GET/POST/DELETE",
+        "description": "Category management"
+      },
+      {
+        "path": "/admin/settings",
+        "method": "GET/POST",
+        "description": "Site settings"
+      }
+    ]
+  },
+  "securityFeatures": [
+    {
+      "feature": "CSRF Protection",
+      "description": "All POST, PUT, DELETE requests require CSRF token"
+    },
+    {
+      "feature": "SQL Injection Prevention",
+      "description": "Using Eloquent ORM with parameterized queries"
+    },
+    {
+      "feature": "XSS Protection",
+      "description": "HTML sanitization with Mews Purifier for stored content"
+    },
+    {
+      "feature": "Role-Based Access Control (RBAC)",
+      "description": "Permission-based authorization system"
+    },
+    {
+      "feature": "Password Hashing",
+      "description": "Bcrypt password hashing via Laravel"
+    },
+    {
+      "feature": "Activity Logging",
+      "description": "Audit trail of all user actions"
+    },
+    {
+      "feature": "Rate Limiting",
+      "description": "Built-in Laravel rate limiting"
+    }
+  ],
+  "deployment": {
+    "requirements": [
+      "PHP 8.3 or higher",
+      "Composer",
+      "Node.js and npm",
+      "MySQL 5.7+ or SQLite"
+    ],
+    "productionSteps": [
+      "Clone repository",
+      "Run: composer install --no-dev",
+      "Run: npm install && npm run build",
+      "Configure .env file",
+      "Run: php artisan key:generate",
+      "Run: php artisan migrate --force",
+      "Configure web server to point to /public directory",
+      "Set proper file permissions (storage and bootstrap/cache)"
+    ]
+  },
+  "testing": {
+    "framework": "PHPUnit 12.5",
+    "configuration": "phpunit.xml",
+    "testDirectories": [
+      "tests/Feature",
+      "tests/Unit"
+    ],
+    "command": "composer test"
+  },
+  "documentation": {
+    "files": [
+      "README.md - Project overview and quick start",
+      "SETUP.md - Detailed setup instructions",
+      "PROJECT.md - Complete project documentation",
+      "DB-1_VERIFICATION_CHECKLIST.md - Database verification checklist",
+      "DB-2_MENUS_IMPLEMENTATION.md - Menu implementation details",
+      "MIGRATION_TO_MYSQL.md - Migration guide from SQLite to MySQL",
+      "work.md - Work tracking and notes",
+      "report.md - Project report",
+      "updates.md - Update history"
+    ]
+  }
+}

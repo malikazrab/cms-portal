@@ -112,44 +112,11 @@
         </div>
 
         <!-- Custom Permissions Section -->
-        <div id="permissionsSection" class="{{ $user->role !== 'post_editor' && $user->role !== 'page_editor' ? 'hidden' : '' }}">
+        <div id="permissionsSection" class="hidden">
             <label class="block text-sm font-medium text-gray-700 mb-3">Custom Permissions</label>
-            <p class="text-sm text-gray-600 mb-4">Select specific permissions for this user. If no permissions are selected, the user will have the default permissions for their role.</p>
+            <p class="text-sm text-gray-600 mb-4">Choose only the permissions this user should have within their editor role. If none are selected, the role's default permissions will be used.</p>
 
-            <div class="grid gap-4 md:grid-cols-2">
-                @php
-                    $permissionGroups = [
-                        'Admin' => ['admin.access', 'dashboard.view', 'settings.manage', 'users.manage', 'activity.view'],
-                        'Posts' => ['posts.view', 'posts.create', 'posts.update', 'posts.delete'],
-                        'Pages' => ['pages.view', 'pages.create', 'pages.update', 'pages.delete'],
-                        'Media' => ['media.view', 'media.upload', 'media.delete'],
-                        'Categories' => ['categories.view', 'categories.create'],
-                        'Tags' => ['tags.view', 'tags.create'],
-                    ];
-                @endphp
-
-                @foreach ($permissionGroups as $groupName => $groupPermissions)
-                    <div class="rounded border border-gray-200 p-4">
-                        <h4 class="font-medium text-gray-900 mb-3">{{ $groupName }}</h4>
-                        <div class="space-y-2">
-                            @foreach ($groupPermissions as $permission)
-                                @if (isset($allPermissions[$permission]))
-                                    <label class="flex items-center gap-2 text-sm">
-                                        <input
-                                            type="checkbox"
-                                            name="custom_permissions[]"
-                                            value="{{ $permission }}"
-                                            @checked(in_array($permission, old('custom_permissions', $user->custom_permissions ?? [])))
-                                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        >
-                                        <span>{{ $allPermissions[$permission] }}</span>
-                                    </label>
-                                @endif
-                            @endforeach
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+            <div id="permissionGroupsContainer" class="grid gap-4 md:grid-cols-2"></div>
 
             @error('custom_permissions')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -176,20 +143,55 @@
 
 @push('scripts')
 <script>
-document.getElementById('role').addEventListener('change', function() {
-    const permissionsSection = document.getElementById('permissionsSection');
-    const selectedRole = this.value;
+const roleField = document.getElementById('role');
+const permissionsSection = document.getElementById('permissionsSection');
+const permissionGroupsContainer = document.getElementById('permissionGroupsContainer');
+const allPermissions = @json($allPermissions);
+const customPermissionGroupsByRole = @json($customPermissionGroupsByRole);
+const selectedPermissions = new Set(@json(old('custom_permissions', $user->custom_permissions ?? [])));
 
-    // Show permissions section only for Post Editor and Page Editor roles
-    if (selectedRole === 'post_editor' || selectedRole === 'page_editor') {
-        permissionsSection.classList.remove('hidden');
-    } else {
+function renderPermissionGroups(selectedRole) {
+    const groups = customPermissionGroupsByRole[selectedRole] || null;
+
+    if (!groups) {
         permissionsSection.classList.add('hidden');
-        // Clear all checkboxes when hiding
-        permissionsSection.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = false;
-        });
+        permissionGroupsContainer.innerHTML = '';
+        return;
     }
+
+    permissionsSection.classList.remove('hidden');
+
+    permissionGroupsContainer.innerHTML = Object.entries(groups).map(([groupName, permissions]) => {
+        const items = permissions
+            .filter((permission) => allPermissions[permission])
+            .map((permission) => `
+                <label class="flex items-center gap-2 text-sm">
+                    <input
+                        type="checkbox"
+                        name="custom_permissions[]"
+                        value="${permission}"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        ${selectedPermissions.has(permission) ? 'checked' : ''}
+                    >
+                    <span>${allPermissions[permission]}</span>
+                </label>
+            `)
+            .join('');
+
+        return `
+            <div class="rounded border border-gray-200 p-4">
+                <h4 class="font-medium text-gray-900 mb-3">${groupName}</h4>
+                <div class="space-y-2">${items}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+roleField.addEventListener('change', function() {
+    selectedPermissions.clear();
+    renderPermissionGroups(this.value);
 });
+
+renderPermissionGroups(roleField.value);
 </script>
 @endpush

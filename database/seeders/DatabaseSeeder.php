@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        // User seeder (your existing code)
         User::updateOrCreate(
             ['email' => 'admin@cms.com'],
             [
@@ -20,5 +21,8 @@ class DatabaseSeeder extends Seeder
                 'role' => User::ROLE_ADMIN,
             ]
         );
+
+        // Add the Default Template Seeder here
+        $this->call(DefaultTemplateSeeder::class);
     }
 }

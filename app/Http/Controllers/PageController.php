@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePageRequest;
+use App\Models\FooterTemplate;
+use App\Models\HeaderTemplate;
+use App\Models\Menu;
 use App\Models\Page;
 use App\Services\ActivityLogger;
 
@@ -17,7 +20,12 @@ class PageController extends Controller
 
     public function create()
     {
-        return view('admin.pages.create', ['page' => null]);
+        return view('admin.pages.create', [
+            'page' => null,
+            'headerTemplates' => HeaderTemplate::query()->latest()->get(),
+            'footerTemplates' => FooterTemplate::query()->latest()->get(),
+            'menus' => Menu::with('topLevelItems')->orderBy('name')->get(),
+        ]);
     }
 
     public function store(StorePageRequest $request)
@@ -56,7 +64,12 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        return view('admin.pages.create', compact('page'));
+        return view('admin.pages.create', [
+            'page' => $page,
+            'headerTemplates' => HeaderTemplate::query()->latest()->get(),
+            'footerTemplates' => FooterTemplate::query()->latest()->get(),
+            'menus' => Menu::with('topLevelItems')->orderBy('name')->get(),
+        ]);
     }
 
     public function update(StorePageRequest $request, Page $page)

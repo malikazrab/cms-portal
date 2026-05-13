@@ -18,6 +18,7 @@ class FooterTemplate extends Model
 
     protected $casts = [
         'is_default' => 'boolean',
+        'content' => 'array',
     ];
 
     // Automatically scope to type='footer'

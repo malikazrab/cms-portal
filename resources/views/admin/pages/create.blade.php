@@ -64,6 +64,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+const initialHeaderTemplates = @json($headerTemplates ?? []);
+const initialFooterTemplates = @json($footerTemplates ?? []);
+const initialMenus = @json($menus ?? []);
+
 tailwind.config = {
   darkMode: 'class',
   theme: {
@@ -457,8 +461,8 @@ tailwind.config = {
                 <template x-for="widget in cat.widgets" :key="widget.type">
                   <div class="widget-lib-item flex flex-col items-center gap-1 p-2 border dark:border-gray-700 rounded-lg hover:border-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 cursor-grab transition-colors text-center"
                     draggable="true"
-                    @dragstart="startDragFromLibrary($event, widget.type)"
-                    @click="addWidgetToCanvas(widget.type)">
+                    @dragstart="startDragFromLibrary($event, widget)"
+                    @click="addWidgetToCanvas(widget)">
                     <i class="fas text-brand-500 text-sm" :class="widget.icon"></i>
                     <span class="text-[10px] text-gray-600 dark:text-gray-400 leading-tight" x-text="widget.label"></span>
                   </div>
@@ -1106,6 +1110,9 @@ function pageBuilderV5() {
     toasts: [],
     undoStack: [],
     redoStack: [],
+    availableHeaderTemplates: initialHeaderTemplates,
+    availableFooterTemplates: initialFooterTemplates,
+    availableMenus: initialMenus,
     mediaImages: [
       'https://picsum.photos/400/300?random=1',
       'https://picsum.photos/400/300?random=2',
@@ -1232,6 +1239,7 @@ function pageBuilderV5() {
     init() {
       this.darkMode = localStorage.getItem('builder_dark') === 'true';
       this.snapGrid = localStorage.getItem('builder_snap') === 'true';
+      this.injectTemplateWidgets();
       this.loadFromStorage();
       this.loadTemplates();
       this.loadRevisions();
@@ -1245,6 +1253,42 @@ function pageBuilderV5() {
       this.$watch('snapGrid', v => localStorage.setItem('builder_snap', v));
 
       this.$nextTick(() => { this.initSortable(); });
+    },
+
+    injectTemplateWidgets() {
+      const layoutCategory = this.widgetCategories.find((category) => category.name === 'Layout');
+
+      if (!layoutCategory) {
+        return;
+      }
+
+      const headerWidgets = this.availableHeaderTemplates.map((template) => ({
+        type: 'header-template',
+        label: `Header: ${template.name}`,
+        icon: 'fa-window-maximize',
+        templateType: 'header',
+        templateId: template.id,
+        templateName: template.name,
+        templateContent: template.content,
+        isDefault: !!template.is_default,
+      }));
+
+      const footerWidgets = this.availableFooterTemplates.map((template) => ({
+        type: 'footer-template',
+        label: `Footer: ${template.name}`,
+        icon: 'fa-grip-lines',
+        templateType: 'footer',
+        templateId: template.id,
+        templateName: template.name,
+        templateContent: template.content,
+        isDefault: !!template.is_default,
+      }));
+
+      layoutCategory.widgets = [
+        ...layoutCategory.widgets.filter((widget) => !['header-template', 'footer-template'].includes(widget.type)),
+        ...headerWidgets,
+        ...footerWidgets,
+      ];
     },
 
     initSortable() {
@@ -1329,6 +1373,8 @@ function pageBuilderV5() {
         'table': { ...base, headers: ['Name','Role','Email'], rows: [['Alice','Developer','alice@example.com'],['Bob','Designer','bob@example.com'],['Carol','Manager','carol@example.com']], striped: true, bordered: true },
         'modal-trigger': { ...base, triggerText: 'Open Modal', triggerBg: '#0ea5e9', modalTitle: 'Modal Title', modalContent: '<p>Modal content goes here. You can put any HTML content.</p>', modalId: 'm_'+Math.random().toString(36).substr(2,6) },
         'form-advanced': { ...base, title: 'Contact Form', fields: [{type:'text',label:'Full Name',required:true},{type:'email',label:'Email Address',required:true},{type:'select',label:'Subject',options:['General','Support','Sales']},{type:'radio',label:'Contact Method',options:['Email','Phone']},{type:'checkbox',label:'Subscribe to newsletter'},{type:'textarea',label:'Message',required:true},{type:'file',label:'Attachment'}], submitText: 'Submit', successMsg: 'Message sent!' },
+        'header-template': { ...base, templateId: null, templateName: 'Header Template', templateType: 'header', templateContent: null },
+        'footer-template': { ...base, templateId: null, templateName: 'Footer Template', templateType: 'footer', templateContent: null },
       };
       return map[type] || base;
     },
@@ -1371,6 +1417,89 @@ function pageBuilderV5() {
       const cls = s.cssClasses || '';
       // Hover data attrs
       const hoverAttrs = s.hoverBg ? `data-hover-bg="${s.hoverBg}"` : '';
+
+      const renderMenuPreview = (menuId, textColor = '#334155') => {
+        const menu = this.availableMenus.find((item) => item.id == menuId);
+        const items = menu?.top_level_items || [];
+
+        if (!menu) {
+          return `<span style="color:${textColor};font-size:14px;">Select a menu</span>`;
+        }
+
+        if (items.length === 0) {
+          return `<span style="color:${textColor};font-size:14px;font-weight:600;">${menu.name}</span>`;
+        }
+
+        return `<nav style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+          ${items.map((item) => `<span style="color:${textColor};font-size:14px;font-weight:500;">${item.label}</span>`).join('')}
+        </nav>`;
+      };
+
+      const renderHeaderTemplateContent = (templateContent) => {
+        const templateSettings = templateContent?.settings || {};
+        const widgets = templateContent?.widgets || [];
+        const bgColor = templateSettings.backgroundColor || '#ffffff';
+        const paddingTop = templateSettings.paddingTop ?? 10;
+        const paddingBottom = templateSettings.paddingBottom ?? 10;
+        const paddingLeft = templateSettings.paddingLeft ?? 20;
+        const paddingRight = templateSettings.paddingRight ?? 20;
+        const containerWidth = templateSettings.containerWidth === 'boxed'
+          ? 'max-width:1200px;margin:0 auto;'
+          : templateSettings.containerWidth === 'fluid'
+            ? 'max-width:90%;margin:0 auto;'
+            : '';
+
+        const inner = widgets.map((widget) => {
+          if (widget.type === 'logo') {
+            return `<img src="${widget.settings.logo_url || '/logo.png'}" alt="Logo" style="max-width:${widget.settings.logo_width || 150}px;height:auto;">`;
+          }
+
+          if (widget.type === 'menu') {
+            return renderMenuPreview(widget.settings.menu_id);
+          }
+
+          if (widget.type === 'search') {
+            return `<div style="display:flex;align-items:center;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;min-width:220px;background:#fff;">
+              <i class="fas fa-search" style="color:#94a3b8;margin-right:8px;"></i>
+              <span style="color:#94a3b8;font-size:14px;">${widget.settings.placeholder || 'Search...'}</span>
+            </div>`;
+          }
+
+          if (widget.type === 'cta') {
+            return `<a href="${this.livePreview ? (widget.settings.url || '#') : '#'}" style="display:inline-block;background:#0ea5e9;color:#fff;padding:10px 18px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">${widget.settings.text || 'Get Started'}</a>`;
+          }
+
+          return `<span style="font-size:14px;color:#64748b;">${widget.type}</span>`;
+        }).join('');
+
+        return `<div style="background:${bgColor};padding:${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;border-radius:12px;border:1px solid #e2e8f0;">
+          <div style="${containerWidth}display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+            ${inner || '<span style="color:#94a3b8;font-size:14px;">Empty header template</span>'}
+          </div>
+        </div>`;
+      };
+
+      const renderFooterTemplateContent = (templateContent) => {
+        const templateSettings = templateContent?.settings || {};
+        const columns = templateContent?.columns || [];
+        const backgroundColor = templateSettings.backgroundColor || '#1a1a1a';
+        const textColor = templateSettings.textColor || '#ffffff';
+        const copyright = templateSettings.copyright || '';
+        const columnCount = templateContent?.columnCount || Math.max(columns.length, 1);
+
+        return `<div style="background:${backgroundColor};color:${textColor};padding:32px;border-radius:12px;">
+          <div style="display:grid;grid-template-columns:repeat(${columnCount}, minmax(0, 1fr));gap:24px;">
+            ${columns.map((column) => `
+              <div>
+                ${column.title ? `<h4 style="margin:0 0 12px;font-size:16px;font-weight:700;color:${textColor};">${column.title}</h4>` : ''}
+                ${column.menu_id ? renderMenuPreview(column.menu_id, textColor) : ''}
+                ${column.content ? `<div style="margin-top:${column.menu_id ? '12px' : '0'};font-size:14px;color:${textColor};opacity:0.92;">${column.content}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+          ${copyright ? `<div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.15);font-size:13px;opacity:0.85;">${copyright}</div>` : ''}
+        </div>`;
+      };
 
       const renders = {
         section: () => `<div ${id} class="w-full ${cls}" style="${wrapStyle} background-image:${s.bgImage?`url(${s.bgImage})`:'none'};background-size:${s.bgSize||'cover'};min-height:100px;">
@@ -1701,6 +1830,14 @@ function pageBuilderV5() {
             </form>
           </div>`;
         },
+
+        'header-template': () => `<div ${id} class="${cls}" style="${wrapStyle}">
+          ${renderHeaderTemplateContent(s.templateContent)}
+        </div>`,
+
+        'footer-template': () => `<div ${id} class="${cls}" style="${wrapStyle}">
+          ${renderFooterTemplateContent(s.templateContent)}
+        </div>`,
       };
 
       const renderer = renders[comp.type];
@@ -2062,23 +2199,46 @@ function pageBuilderV5() {
       return 'w_' + Math.random().toString(36).substr(2, 9);
     },
 
-    createWidget(type) {
-      return {
+    createWidget(widgetDescriptor) {
+      const descriptor = typeof widgetDescriptor === 'string'
+        ? (() => {
+            try {
+              return JSON.parse(widgetDescriptor);
+            } catch (error) {
+              return { type: widgetDescriptor };
+            }
+          })()
+        : widgetDescriptor;
+      const type = descriptor.type;
+      const widget = {
         id: this.generateId(),
         type,
         settings: this.getDefaultSettings(type),
         children: ['section','container'].includes(type) ? [] : undefined,
       };
+
+      if (type === 'header-template' || type === 'footer-template') {
+        widget.settings = {
+          ...widget.settings,
+          templateId: descriptor.templateId,
+          templateName: descriptor.templateName,
+          templateType: descriptor.templateType,
+          templateContent: descriptor.templateContent,
+          label: descriptor.templateName,
+        };
+      }
+
+      return widget;
     },
 
-    addWidgetToCanvas(type) {
+    addWidgetToCanvas(widgetDescriptor) {
       this.pushHistory();
-      const w = this.createWidget(type);
+      const w = this.createWidget(widgetDescriptor);
       this.components.push(w);
       this.selectedId = w.id;
       this.markDirty();
       this.$nextTick(() => { this.initSortable(); });
-      this.showToast(`${type} added`, 'success');
+      this.showToast(`${w.settings.label || w.type} added`, 'success');
     },
 
     selectWidget(id) {
@@ -2175,9 +2335,10 @@ function pageBuilderV5() {
     },
 
     // ==================== DRAG & DROP ====================
-    startDragFromLibrary(e, type) {
-      this.dragWidget = type;
-      e.dataTransfer.setData('text/plain', type);
+    startDragFromLibrary(e, widget) {
+      const payload = JSON.stringify(widget);
+      this.dragWidget = payload;
+      e.dataTransfer.setData('text/plain', payload);
       e.dataTransfer.effectAllowed = 'copy';
     },
 
@@ -2188,9 +2349,9 @@ function pageBuilderV5() {
 
     dropOnCanvas(e) {
       e.preventDefault();
-      const type = e.dataTransfer.getData('text/plain') || this.dragWidget;
-      if (type) {
-        this.addWidgetToCanvas(type);
+      const widget = e.dataTransfer.getData('text/plain') || this.dragWidget;
+      if (widget) {
+        this.addWidgetToCanvas(widget);
         this.dragWidget = null;
       }
     },
@@ -2655,6 +2816,7 @@ function pageBuilderV5() {
         'google-maps': 'fa-map-marker-alt', 'post-loop': 'fa-rss', 'post-meta': 'fa-info',
         'author-box': 'fa-user', 'custom-field': 'fa-database', 'contact-form': 'fa-envelope',
         'subscribe-form': 'fa-bell', 'search-form': 'fa-search', 'raw-html': 'fa-code',
+        'header-template': 'fa-window-maximize', 'footer-template': 'fa-grip-lines',
       };
       return icons[type] || 'fa-puzzle-piece';
     },

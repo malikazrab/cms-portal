@@ -15,10 +15,13 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\RoleManagementController;
 use App\Http\Controllers\MenuController;
-use App\Http\Controllers\HeaderTemplateController;
-use App\Http\Controllers\FooterTemplateController;
-use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
+
+// routes/web.php
+Route::prefix('admin')->name('admin.')->middleware(['web', 'activity', 'permission:users.manage'])->group(function () {
+    // ... your existing admin routes ...
+    Route::get('/sessions', [App\Http\Controllers\Admin\SessionController::class, 'index'])->name('sessions.index');
+});
 
 Route::middleware(['auth', 'admin.auth'])
     ->prefix('admin')
@@ -57,10 +60,6 @@ Route::middleware(['auth', 'admin.auth'])
         Route::post('/backup/create', [BackupController::class, 'create'])->middleware('permission:settings.manage')->name('backup.create');
         Route::post('/backup/restore', [BackupController::class, 'restore'])->middleware('permission:settings.manage')->name('backup.restore');
 
-        Route::get('/sessions', [SessionController::class, 'index'])->middleware('permission:users.manage')->name('sessions.index');
-        Route::delete('/sessions/{sessionId}', [SessionController::class, 'destroy'])->middleware('permission:users.manage')->name('sessions.destroy');
-        Route::delete('/sessions', [SessionController::class, 'destroyAll'])->middleware('permission:users.manage')->name('sessions.destroy-all');
-
         Route::get('users', [UserManagementController::class, 'index'])->middleware('permission:users.manage')->name('users.index');
         Route::get('users/create', [UserManagementController::class, 'create'])->middleware('permission:users.manage')->name('users.create');
         Route::post('users', [UserManagementController::class, 'store'])->middleware('permission:users.manage')->name('users.store');
@@ -86,28 +85,6 @@ Route::middleware(['auth', 'admin.auth'])
         Route::put('/menus/{menu}', [MenuController::class, 'update'])->name('menus.update');
         Route::delete('/menus/{menu}', [MenuController::class, 'destroy'])->name('menus.destroy');
         Route::post('/menus/{menu}/set-default', [MenuController::class, 'setDefault'])->name('menus.set-default');
-
-                // ============================================================
-        // ========== HEADER TEMPLATE ROUTES ==========================
-        // ============================================================
-        Route::get('/headers', [HeaderTemplateController::class, 'index'])->name('headers.index');
-        Route::get('/headers/create', [HeaderTemplateController::class, 'create'])->name('headers.create');
-        Route::post('/headers', [HeaderTemplateController::class, 'store'])->name('headers.store');
-        Route::get('/headers/{headerTemplate}/edit', [HeaderTemplateController::class, 'edit'])->name('headers.edit');
-        Route::put('/headers/{headerTemplate}', [HeaderTemplateController::class, 'update'])->name('headers.update');
-        Route::delete('/headers/{headerTemplate}', [HeaderTemplateController::class, 'destroy'])->name('headers.destroy');
-        Route::post('/headers/{headerTemplate}/set-default', [HeaderTemplateController::class, 'setDefault'])->name('headers.set-default');
-
-        // ============================================================
-        // ========== FOOTER TEMPLATE ROUTES ==========================
-        // ============================================================
-        Route::get('/footers', [FooterTemplateController::class, 'index'])->name('footers.index');
-        Route::get('/footers/create', [FooterTemplateController::class, 'create'])->name('footers.create');
-        Route::post('/footers', [FooterTemplateController::class, 'store'])->name('footers.store');
-        Route::get('/footers/{footerTemplate}/edit', [FooterTemplateController::class, 'edit'])->name('footers.edit');
-        Route::put('/footers/{footerTemplate}', [FooterTemplateController::class, 'update'])->name('footers.update');
-        Route::delete('/footers/{footerTemplate}', [FooterTemplateController::class, 'destroy'])->name('footers.destroy');
-        Route::post('/footers/{footerTemplate}/set-default', [FooterTemplateController::class, 'setDefault'])->name('footers.set-default');
 
         // ============================================================
         // ========== PAGE VERSIONING ROUTES (PHASE 2) ================

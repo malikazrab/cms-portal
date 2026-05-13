@@ -1,76 +1,70 @@
 <?php
 
 namespace App\Models;
-use App\Models\MenuItem;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Menu extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
     protected $fillable = [
         'name',
         'slug',
-        'is_default',
-        'created_by',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'is_default' => 'boolean',
-    ];
-
-    /**
-     * Get the user who created this menu.
-     */
-    public function creator(): BelongsTo
+    public function menuItems(): HasMany
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->hasMany(MenuItem::class)->orderBy('order', 'asc');
     }
 
-    /**
-     * Get the menu items for this menu.
-     */
-    public function items(): HasMany
+    public function topLevelItems()
     {
-        return $this->hasMany(MenuItem::class, 'menu_id');
-    }
-
-    /**
-     * Get the menu items for this menu ordered by sort_order.
-     */
-    public function itemsOrdered(): HasMany
-    {
-        return $this->items()->orderBy('sort_order', 'asc');
-    }
-
-    /**
-     * Get only the top-level menu items (parent_id is null).
-     */
-    public function topLevelItems(): HasMany
-    {
-        return $this->items()
+        return $this->menuItems()
             ->whereNull('parent_id')
-            ->orderBy('sort_order', 'asc');
+            ->with(['children' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }])
+            ->orderBy('order', 'asc');
     }
 
-    /**
-     * Get the default menu.
-     */
-    public static function getDefault(): ?static
+    public function render(): string
     {
-        return static::where('is_default', true)->first();
+        $items = $this->topLevelItems()->get();
+        
+        if ($items->isEmpty()) {
+            return '';
+        }
+
+        return $this->renderMenuItems($items);
+    }
+
+    protected function renderMenuItems($items, $depth = 0): string
+    {
+        if ($items->isEmpty()) {
+            return '';
+        }
+
+        $html = '<ul class="' . ($depth === 0 ? 'space-y-2' : 'ml-4 mt-2 space-y-1') . '">';
+        
+        foreach ($items as $item) {
+            $hasChildren = $item->children->isNotEmpty();
+            $html .= '<li>';
+            $html .= '<a href="' . e($item->url ?? '#') . '" class="block px-4 py-2 hover:bg-gray-100 rounded">';
+            $html .= e($item->label ?? $item->title ?? 'Menu Item');
+            $html .= '</a>';
+            
+            if ($hasChildren) {
+                $html .= $this->renderMenuItems($item->children, $depth + 1);
+            }
+            
+            $html .= '</li>';
+        }
+        
+        $html .= '</ul>';
+        
+        return $html;
     }
 }

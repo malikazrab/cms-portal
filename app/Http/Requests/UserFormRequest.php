@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -38,7 +39,23 @@ class UserFormRequest extends FormRequest
             ],
             'role' => ['required', 'in:'.implode(',', array_keys(User::availableRoles()))],
             'custom_permissions' => ['nullable', 'array'],
-            'custom_permissions.*' => ['string', 'in:'.implode(',', array_keys(User::getAllPermissions()))],
+            'custom_permissions.*' => [
+                'string',
+                'in:'.implode(',', array_keys(User::getAllPermissions())),
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $allowedPermissions = User::getAllowedCustomPermissionsForRole((string) $this->input('role'));
+
+                    if ($allowedPermissions === []) {
+                        $fail('Custom permissions are only available for Post Editor and Page Editor roles.');
+
+                        return;
+                    }
+
+                    if (!in_array($value, $allowedPermissions, true)) {
+                        $fail('One or more selected permissions are not allowed for the chosen role.');
+                    }
+                },
+            ],
         ];
 
         // Password is required for creation, optional for updates

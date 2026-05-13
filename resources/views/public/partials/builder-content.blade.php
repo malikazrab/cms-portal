@@ -6,7 +6,7 @@
     $showTitle = $showTitle ?? true;
     $wrapInCard = $wrapInCard ?? true;
 
-    $wrapperClass = $wrapInCard ? 'rounded bg-white p-6 shadow-sm' : '';
+    $wrapperClass = $wrapInCard ? 'overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8' : '';
     $wrapperStyle = 'background-color: '.($background['color'] ?? $globalStyles['bgColor'] ?? 'transparent').';';
 
     if (!empty($background['image'] ?? $globalStyles['bgImage'] ?? null)) {
@@ -16,11 +16,11 @@
 
 <article class="{{ $wrapperClass }}" style="{{ $wrapperStyle }}">
     @if ($showTitle)
-        <h1 class="mb-8 text-4xl font-bold">{{ $builder['title'] ?? $pageModel->title }}</h1>
+        <h1 class="mb-8 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">{{ $builder['title'] ?? $pageModel->title }}</h1>
     @endif
 
     @if ($components)
-        <div class="space-y-6">
+        <div class="space-y-8">
             @foreach ($components as $component)
                 @php
                     $type = $component['type'] ?? '';

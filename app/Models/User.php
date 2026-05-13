@@ -22,6 +22,10 @@ class User extends Authenticatable
     public const ROLE_EDITOR = 'editor';
     public const ROLE_POST_EDITOR = 'post_editor';
     public const ROLE_PAGE_EDITOR = 'page_editor';
+    private const BASE_ADMIN_PERMISSIONS = [
+        'admin.access',
+        'dashboard.view',
+    ];
 
     protected const ROLE_PERMISSIONS = [
         self::ROLE_ADMIN => ['*'],
@@ -68,6 +72,18 @@ class User extends Authenticatable
         ],
     ];
 
+    protected const CUSTOM_PERMISSION_GROUPS = [
+        self::ROLE_POST_EDITOR => [
+            'Posts' => ['posts.view', 'posts.create', 'posts.update', 'posts.delete'],
+            'Media' => ['media.view', 'media.upload', 'media.delete'],
+            'Categories' => ['categories.view', 'categories.create'],
+        ],
+        self::ROLE_PAGE_EDITOR => [
+            'Pages' => ['pages.view', 'pages.create', 'pages.update', 'pages.delete'],
+            'Media' => ['media.view', 'media.upload', 'media.delete'],
+        ],
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -94,13 +110,7 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        // If user has custom permissions, check those first
-        if ($this->custom_permissions && in_array($permission, $this->custom_permissions)) {
-            return true;
-        }
-
-        // Fall back to role-based permissions
-        $permissions = self::ROLE_PERMISSIONS[$this->role] ?? [];
+        $permissions = $this->getEffectivePermissions();
 
         return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
     }
@@ -110,16 +120,18 @@ class User extends Authenticatable
      */
     public function getEffectivePermissions(): array
     {
-        // If admin, return all
         if ($this->role === self::ROLE_ADMIN) {
             return ['*'];
         }
 
-        // Combine role permissions with custom permissions
         $rolePermissions = self::ROLE_PERMISSIONS[$this->role] ?? [];
-        $customPermissions = $this->custom_permissions ?? [];
+        $customPermissions = self::normalizeCustomPermissionsForRole($this->role, $this->custom_permissions ?? []) ?? [];
 
-        return array_unique(array_merge($rolePermissions, $customPermissions));
+        if ($this->usesCustomPermissionOverride()) {
+            return array_values(array_unique(array_merge(self::BASE_ADMIN_PERMISSIONS, $customPermissions)));
+        }
+
+        return array_values(array_unique(array_merge($rolePermissions, $customPermissions)));
     }
 
     /**
@@ -128,6 +140,48 @@ class User extends Authenticatable
     public static function getRolePermissions(string $role): array
     {
         return self::ROLE_PERMISSIONS[$role] ?? [];
+    }
+
+    public static function supportsCustomPermissionOverride(string $role): bool
+    {
+        return array_key_exists($role, self::CUSTOM_PERMISSION_GROUPS);
+    }
+
+    public static function getCustomPermissionGroupsForRole(string $role): array
+    {
+        return self::CUSTOM_PERMISSION_GROUPS[$role] ?? [];
+    }
+
+    public static function getAllowedCustomPermissionsForRole(string $role): array
+    {
+        $groups = self::getCustomPermissionGroupsForRole($role);
+
+        if ($groups === []) {
+            return [];
+        }
+
+        return array_values(array_unique(array_merge(...array_values($groups))));
+    }
+
+    public static function normalizeCustomPermissionsForRole(string $role, ?array $permissions): ?array
+    {
+        if (!self::supportsCustomPermissionOverride($role)) {
+            return null;
+        }
+
+        $permissions = array_values(array_unique($permissions ?? []));
+        $allowedPermissions = self::getAllowedCustomPermissionsForRole($role);
+
+        return array_values(array_intersect($permissions, $allowedPermissions));
+    }
+
+    public function usesCustomPermissionOverride(): bool
+    {
+        if (!self::supportsCustomPermissionOverride($this->role)) {
+            return false;
+        }
+
+        return self::normalizeCustomPermissionsForRole($this->role, $this->custom_permissions ?? []) !== [];
     }
 
     /**

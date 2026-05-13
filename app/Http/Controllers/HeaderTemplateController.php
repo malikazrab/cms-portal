@@ -2,93 +2,130 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Menu;
 use App\Models\HeaderTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class HeaderTemplateController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $templates = HeaderTemplate::all();
+        $templates = HeaderTemplate::query()
+            ->latest()
+            ->get();
+
         return view('admin.headers.index', compact('templates'));
     }
 
-    public function create()
+    public function create(): View
     {
-        return view('admin.headers.create');
+        return view('admin.headers.edit', [
+            'header' => null,
+            'availableMenus' => Menu::orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'content' => 'required|string',
-            'is_default' => 'sometimes|boolean',
-        ]);
+        $validated = $this->validateTemplate($request);
 
         $template = HeaderTemplate::create([
             'name' => $validated['name'],
             'content' => $validated['content'],
-            'is_default' => $request->boolean('is_default', false),
+            'is_default' => $validated['is_default'] ?? false,
             'created_by' => Auth::id(),
         ]);
 
-        if ($request->boolean('is_default')) {
+        if (!empty($validated['is_default'])) {
             $template->setAsDefault();
+        }
+
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Header template created successfully.',
+                'redirect' => route('admin.headers.index'),
+                'id' => $template->id,
+            ]);
         }
 
         return redirect()->route('admin.headers.index')
             ->with('success', 'Header template created successfully.');
     }
 
-    public function edit($id)
+    public function edit(HeaderTemplate $headerTemplate): View
     {
-        $template = HeaderTemplate::findOrFail($id);
-        return view('admin.headers.edit', compact('template'));
+        return view('admin.headers.edit', [
+            'header' => $headerTemplate,
+            'availableMenus' => Menu::orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, HeaderTemplate $headerTemplate): JsonResponse|RedirectResponse
     {
-        $template = HeaderTemplate::findOrFail($id);
+        $validated = $this->validateTemplate($request);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'content' => 'required|string',
-            'is_default' => 'sometimes|boolean',
-        ]);
-
-        $template->update([
+        $headerTemplate->update([
             'name' => $validated['name'],
             'content' => $validated['content'],
-            'is_default' => $request->boolean('is_default', false),
+            'is_default' => $validated['is_default'] ?? false,
         ]);
 
-        if ($request->boolean('is_default')) {
-            $template->setAsDefault();
+        if (!empty($validated['is_default'])) {
+            $headerTemplate->setAsDefault();
+        }
+
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Header template updated successfully.',
+                'redirect' => route('admin.headers.index'),
+            ]);
         }
 
         return redirect()->route('admin.headers.index')
             ->with('success', 'Header template updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, HeaderTemplate $headerTemplate): JsonResponse|RedirectResponse
     {
-        $template = HeaderTemplate::findOrFail($id);
-        $template->delete();
+        $headerTemplate->delete();
 
-        return redirect()->route('admin.headers.index')
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Header template deleted successfully.',
+            ]);
+        }
+
+        return back()
             ->with('success', 'Header template deleted successfully.');
     }
 
-    public function setDefault($id)
+    public function setDefault(Request $request, HeaderTemplate $headerTemplate): JsonResponse|RedirectResponse
     {
-        $template = HeaderTemplate::findOrFail($id);
-        $template->setAsDefault();
+        $headerTemplate->setAsDefault();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Header template set as default.',
+        if ($request->expectsJson() || $request->isJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Header template set as default.',
+            ]);
+        }
+
+        return back()->with('success', 'Header template set as default.');
+    }
+
+    private function validateTemplate(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'content' => ['required', 'array'],
+            'is_default' => ['sometimes', 'boolean'],
         ]);
     }
 }

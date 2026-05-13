@@ -34,6 +34,10 @@ class UserManagementController extends Controller
         return view('admin.users.create', [
             'roles' => User::availableRoles(),
             'allPermissions' => User::getAllPermissions(),
+            'customPermissionGroupsByRole' => [
+                User::ROLE_POST_EDITOR => User::getCustomPermissionGroupsForRole(User::ROLE_POST_EDITOR),
+                User::ROLE_PAGE_EDITOR => User::getCustomPermissionGroupsForRole(User::ROLE_PAGE_EDITOR),
+            ],
         ]);
     }
 
@@ -49,7 +53,10 @@ class UserManagementController extends Controller
             'email' => $validated['email'],
             'password' => $validated['password'],
             'role' => $validated['role'],
-            'custom_permissions' => $validated['custom_permissions'] ?? null,
+            'custom_permissions' => User::normalizeCustomPermissionsForRole(
+                $validated['role'],
+                $validated['custom_permissions'] ?? []
+            ),
         ]);
 
         ActivityLogger::log(
@@ -76,6 +83,10 @@ class UserManagementController extends Controller
             'user' => $user,
             'roles' => User::availableRoles(),
             'allPermissions' => User::getAllPermissions(),
+            'customPermissionGroupsByRole' => [
+                User::ROLE_POST_EDITOR => User::getCustomPermissionGroupsForRole(User::ROLE_POST_EDITOR),
+                User::ROLE_PAGE_EDITOR => User::getCustomPermissionGroupsForRole(User::ROLE_PAGE_EDITOR),
+            ],
         ]);
     }
 
@@ -112,7 +123,10 @@ class UserManagementController extends Controller
         $user->name = $validated['name'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
-        $user->custom_permissions = $validated['custom_permissions'] ?? null;
+        $user->custom_permissions = User::normalizeCustomPermissionsForRole(
+            $validated['role'],
+            $validated['custom_permissions'] ?? []
+        );
 
         if (!empty($validated['password'])) {
             $user->password = $validated['password'];
