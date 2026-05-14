@@ -9,19 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class PageVersionController extends Controller
 {
-    // GET /admin/pages/{id}/versions
-    public function index($id)
+    // GET /admin/pages/{id}/versions (HTML view or API)
+    public function versions($id)
     {
         $page = Page::findOrFail($id);
         
-        $versions = $page->versions()
-            ->with('user')
-            ->get(['id', 'version_number', 'change_note', 'saved_by', 'created_at']);
+        // Check if this is an AJAX request
+        if (request()->expectsJson() || request()->header('Accept') === 'application/json') {
+            // Return JSON for API calls
+            $versions = $page->versions()
+                ->with('user')
+                ->get(['id', 'version_number', 'change_note', 'saved_by', 'created_at']);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $versions
+            ]);
+        }
         
-        return response()->json([
-            'success' => true,
-            'data' => $versions
-        ]);
+        // Return HTML view for regular requests
+        return view('admin.pages.versions', compact('page'));
     }
     
     // GET /admin/pages/{id}/versions/{vid}

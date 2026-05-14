@@ -6,7 +6,10 @@
 <div x-data="pageEditor()" x-init="init()">
     <div class="rounded bg-white p-6 shadow-sm">
         <div class="mb-4 flex items-center justify-between">
-            <h1 class="text-2xl font-semibold text-gray-900">Edit Page</h1>
+            <div>
+                <h1 class="text-2xl font-semibold text-gray-900">Edit Page</h1>
+                <p class="text-sm text-gray-600 mt-1">Current Version: <span class="font-medium text-blue-600">v{{ $latestVersion }}</span></p>
+            </div>
             <div class="flex items-center space-x-3">
                 <a href="{{ route('admin.pages.versions', $page->id) }}" class="rounded bg-gray-100 px-3 py-1 text-sm text-gray-700 hover:bg-gray-200">
                     Version History

@@ -16,7 +16,7 @@ class StorePageRequest extends FormRequest
         $pageId = $this->route('page')?->id;
 
         return [
-            'title'            => 'required|string|max:255',
+            'title'            => 'required|string|max:255|unique:pages,title,' . $pageId,
             'slug'             => 'required|string|unique:pages,slug,' . $pageId,
             'content'          => 'nullable|string',
             'status'           => 'required|in:draft,published',
@@ -30,8 +30,9 @@ class StorePageRequest extends FormRequest
     {
         return [
             'title.required'  => 'Title zaroori hai.',
+            'title.unique'    => 'A page with this title already exists. Change the page name.',
             'slug.required'   => 'Slug zaroori hai.',
-            'slug.unique'     => 'This slug is already in use.',
+            'slug.unique'     => 'A page with this title already exists. Change the page name.',
             'status.required' => 'Status select karein.',
             'status.in'       => 'Status sirf draft ya published ho sakta hai.',
         ];

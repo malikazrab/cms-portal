@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('page_versions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('page_id')->constrained()->cascadeOnDelete();
-            $table->unsignedSmallInteger('version_number');
+            $table->decimal('version_number', 3, 1);
             $table->longText('content');
             $table->string('change_note')->nullable();
             $table->foreignId('saved_by')->nullable()->constrained('users')->nullOnDelete();

@@ -16,6 +16,7 @@
                     <th class="px-3 py-2">Title</th>
                     <th class="px-3 py-2">Public URL</th>
                     <th class="px-3 py-2">Status</th>
+                    <th class="px-3 py-2">Version</th>
                     <th class="px-3 py-2">Author</th>
                     <th class="px-3 py-2"></th>
                 </tr>
@@ -34,9 +35,12 @@
                         <td class="px-3 py-2">
                             <span class="rounded px-2 py-1 text-xs font-medium {{ $page->status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">{{ ucfirst($page->status) }}</span>
                         </td>
+                        <td class="px-3 py-2 text-sm text-gray-600">
+                            <span class="font-medium">v{{ $page->latest_version }}</span>
+                        </td>
                         <td class="px-3 py-2 text-gray-600">{{ $page->user->name ?? '-' }}</td>
                         <td class="px-3 py-2 text-right">
-                            <a href="{{ route('admin.pages.edit', $page) }}" class="text-blue-600 hover:text-blue-700">Edit</a>
+                            <a href="{{ route('admin.pages.create') }}?edit={{ $page->id }}" class="text-blue-600 hover:text-blue-700">Edit</a>
                             <form action="{{ route('admin.pages.destroy', $page) }}" method="POST" class="ml-3 inline" onsubmit="return confirm('Delete this page?')">
                                 @csrf
                                 @method('DELETE')
@@ -46,7 +50,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-3 py-8 text-center text-gray-500">No pages yet.</td>
+                        <td colspan="6" class="px-3 py-8 text-center text-gray-500">No pages yet.</td>
                     </tr>
                 @endforelse
             </tbody>

@@ -89,16 +89,16 @@ Route::middleware(['auth', 'admin.auth'])
         // ============================================================
         // ========== PAGE VERSIONING ROUTES (PHASE 2) ================
         // ============================================================
-        Route::prefix('pages/{page}')->group(function () {
-            Route::get('/versions', [PageVersionController::class, 'index'])
-                ->middleware('permission:pages.view')
-                ->name('pages.versions.index');
-
-            Route::get('/versions/{version}', [PageVersionController::class, 'show'])
+        Route::get('pages/{page}/versions', [PageVersionController::class, 'versions'])
+            ->middleware('permission:pages.view')
+            ->name('pages.versions');
+        
+        Route::prefix('pages/{page}/versions')->group(function () {
+            Route::get('/{version}', [PageVersionController::class, 'show'])
                 ->middleware('permission:pages.view')
                 ->name('pages.versions.show');
 
-            Route::post('/versions/{version}/restore', [PageVersionController::class, 'restore'])
+            Route::post('/{version}/restore', [PageVersionController::class, 'restore'])
                 ->middleware('permission:pages.update')
                 ->name('pages.versions.restore');
         });

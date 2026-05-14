@@ -67,6 +67,7 @@
 const initialHeaderTemplates = @json($headerTemplates ?? []);
 const initialFooterTemplates = @json($footerTemplates ?? []);
 const initialMenus = @json($menus ?? []);
+const initialPageData = @json(isset($page) ? json_decode($page->content, true) : null);
 
 tailwind.config = {
   darkMode: 'class',
@@ -1113,6 +1114,8 @@ function pageBuilderV5() {
     availableHeaderTemplates: initialHeaderTemplates,
     availableFooterTemplates: initialFooterTemplates,
     availableMenus: initialMenus,
+    pageId: @json($page->id ?? null),
+    isNewPage: @json(empty($page)),
     mediaImages: [
       'https://picsum.photos/400/300?random=1',
       'https://picsum.photos/400/300?random=2',
@@ -2575,20 +2578,42 @@ function pageBuilderV5() {
           meta_description: this.seoData.meta,
         })
       })
-      .then(res => res.json())
+      .then(async res => {
+        const payload = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          const message = payload.message || payload.errors?.title?.[0] || payload.errors?.slug?.[0] || 'Unable to save page. Change the page name and try again.';
+          this.showToast(message, 'error');
+          return null;
+        }
+
+        return payload;
+      })
       .then(res => {
+        if (!res) return;
+
         if (res.success && res.page_id) {
-          // Inject page id so next save uses PUT
           let meta = document.querySelector('meta[name="page-id"]');
           if (!meta) { meta = document.createElement('meta'); meta.name = 'page-id'; document.head.appendChild(meta); }
           meta.setAttribute('content', res.page_id);
           if (res.redirect) window.location.href = res.redirect;
+          if (status === 'published') {
+            this.showToast('Page published successfully.', 'success');
+          }
         }
       })
-      .catch(err => console.warn('Server save error:', err));
+      .catch(err => {
+        console.warn('Server save error:', err);
+        this.showToast('Server save error. Please try again.', 'error');
+      });
     },
 
     loadFromStorage() {
+      if (this.isNewPage) {
+        localStorage.removeItem('cms_page_data');
+        return;
+      }
+
       try {
         const raw = localStorage.getItem('cms_page_data');
         if (raw) {
@@ -2610,7 +2635,6 @@ function pageBuilderV5() {
 
     publishPage() {
       this.savePage('published');
-      this.showToast('Page published!', 'success');
     },
 
     markDirty() {
