@@ -36,12 +36,18 @@
 --}}
 
 <script>
-function pageBuilderV5() {
+function pageBuilderV5(mode = 'page', initialHeader = null, availableMenus = []) {
   return {
 
     // =====================================================================
     // STATE
     // =====================================================================
+    builderMode: mode,
+    initialHeader: initialHeader,
+    availableMenus: availableMenus,
+    headerName: initialHeader?.name ?? 'New Header',
+    isDefault: initialHeader?.is_default ?? false,
+    pageSettings: initialHeader?.content?.settings ?? { backgroundColor: '#ffffff', containerWidth: 'full', paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 },
     components: [],
     selectedId: null,
     darkMode: false,
@@ -268,6 +274,15 @@ function pageBuilderV5() {
       setInterval(() => this.saveRevision('Auto-snapshot'), 300000);
       // Persist snap-grid toggle
       this.$watch('snapGrid', v => localStorage.setItem('builder_snap', v));
+
+      if (this.builderMode === 'header' && this.initialHeader) {
+        this.components = (this.initialHeader.content?.widgets || []).map(w => ({
+          id: Math.random().toString(36).slice(2),
+          type: w.type,
+          settings: Object.assign({}, this.getDefaultSettings(w.type), w.settings || {})
+        }));
+        this.globalStyles = Object.assign(this.globalStyles || {}, this.initialHeader.content?.globalStyles || {});
+      }
 
       this.$nextTick(() => { this.initSortable(); });
     },
@@ -2061,35 +2076,39 @@ function pageBuilderV5() {
     // SAVE / LOAD
     // =====================================================================
     savePage(status) {
+      const isHeader = this.builderMode === 'header';
       const data = { components: this.components, globalStyles: this.globalStyles, seoData: this.seoData, savedAt: Date.now() };
       localStorage.setItem('cms_page_data', JSON.stringify(data));
       this.isDirty = false;
       this.autoSaveIndicator = true;
       setTimeout(() => this.autoSaveIndicator = false, 3000);
-      this.showToast('Page saved!', 'success');
+      this.showToast(isHeader ? 'Header saved!' : 'Page saved!', 'success');
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
       const pageId    = document.querySelector('meta[name="page-id"]')?.getAttribute('content')    || null;
-      const url       = pageId ? `/admin/pages/${pageId}` : `{{ route("admin.pages.store") }}`;
+      const url       = isHeader ? `{{ route("admin.headers.store") }}` : pageId ? `/admin/pages/${pageId}` : `{{ route("admin.pages.store") }}`;
+      const method    = isHeader ? 'POST' : (pageId ? 'PUT' : 'POST');
+      const body      = isHeader ? JSON.stringify({
+        name:       this.headerName || 'Untitled Header',
+        is_default: this.isDefault ? 1 : 0,
+        content:    { widgets: this.components.map(c => ({ type: c.type, settings: c.settings })), settings: this.pageSettings || {}, globalStyles: this.globalStyles }
+      }) : JSON.stringify({
+        title:            this.seoData.title || 'Untitled Page',
+        slug:             (this.seoData.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        content:          JSON.stringify(data),
+        status:           status || 'draft',
+        meta_title:       this.seoData.title,
+        meta_description: this.seoData.meta,
+      });
 
       fetch(url, {
-        method: pageId ? 'PUT' : 'POST',
+        method: method,
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-        body: JSON.stringify({
-          title:            this.seoData.title || 'Untitled Page',
-          slug:             (this.seoData.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-          content:          JSON.stringify(data),
-          status:           status || 'draft',
-          meta_title:       this.seoData.title,
-          meta_description: this.seoData.meta,
-        })
+        body: body
       })
       .then(res => res.json())
       .then(res => {
-        if (res.success && res.page_id) {
-          let meta = document.querySelector('meta[name="page-id"]');
-          if (!meta) { meta = document.createElement('meta'); meta.name = 'page-id'; document.head.appendChild(meta); }
-          meta.setAttribute('content', res.page_id);
+        if (res.success && (res.header_id || res.page_id)) {
           if (res.redirect) window.location.href = res.redirect;
         }
       })
@@ -2116,7 +2135,10 @@ function pageBuilderV5() {
       }
     },
 
-    publishPage() { this.savePage('published'); this.showToast('Page published!', 'success'); },
+    publishPage() {
+      this.savePage('published');
+      this.showToast(this.builderMode === 'header' ? 'Header published!' : 'Page published!', 'success');
+    },
     markDirty()   { this.isDirty = true; },
 
     // =====================================================================

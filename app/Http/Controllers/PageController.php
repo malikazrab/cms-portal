@@ -46,15 +46,7 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        $latestVersion = $page->versions()->max('version_number') ?? 1.0;
-
-        return view('admin.pages.edit', [
-            'page' => $page,
-            'latestVersion' => $latestVersion,
-            'headerTemplates' => HeaderTemplate::query()->latest()->get(),
-            'footerTemplates' => FooterTemplate::query()->latest()->get(),
-            'menus' => Menu::with('topLevelItems')->orderBy('name')->get(),
-        ]);
+        return redirect()->route('admin.pages.create', ['edit' => $page->id]);
     }
 
     public function store(StorePageRequest $request)
@@ -104,6 +96,12 @@ class PageController extends Controller
             ]);
         }
 
+        return redirect()->route('admin.pages.index')
+            ->with('success', 'Page created successfully.');
+    }
+
+    public function update(StorePageRequest $request, Page $page)
+    {
         $oldData = $page->only(['title', 'slug', 'content', 'status', 'template', 'meta_title', 'meta_description']);
         $newData = [
             'title' => $request->input('title'),
@@ -116,13 +114,10 @@ class PageController extends Controller
         ];
 
         $hasChanges = $oldData != $newData;
-
         if ($hasChanges) {
-            // Get latest version number and increment
             $latestVersion = $page->versions()->max('version_number') ?? 1.0;
             $newVersionNumber = round($latestVersion + 0.1, 1);
 
-            // Create new version
             PageVersion::create([
                 'page_id' => $page->id,
                 'version_number' => $newVersionNumber,
@@ -142,7 +137,6 @@ class PageController extends Controller
             user: $request->user()
         );
 
-        // Return JSON for fetch requests, redirect for form submissions
         if ($request->expectsJson() || $request->header('Content-Type') === 'application/json') {
             return response()->json([
                 'success' => true,

@@ -297,30 +297,6 @@ tailwind.config = {
 </div>
 
 <!-- PAGE VERSIONS MODAL -->
-<div x-show="showVersionsModal" x-cloak class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-[560px] max-h-[80vh] flex flex-col">
-    <div class="flex items-center justify-between p-4 border-b dark:border-gray-700">
-      <h3 class="font-bold text-lg flex items-center gap-2"><i class="fas fa-code-branch text-brand-500"></i> Page Versions</h3>
-      <button @click="showVersionsModal=false" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
-    </div>
-    <div class="p-4 border-b dark:border-gray-700 flex gap-2">
-      <input x-model="newVersionName" placeholder="Version name (e.g. v1.0 Homepage)..." class="flex-1 border dark:border-gray-600 rounded-lg px-3 py-2 text-sm dark:bg-gray-700" @keydown.enter="saveVersion()">
-      <button @click="saveVersion()" class="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600">Save</button>
-    </div>
-    <div class="flex-1 overflow-y-auto p-4 space-y-2">
-      <template x-if="pageVersions.length===0"><p class="text-center text-gray-400 py-8">No versions saved yet</p></template>
-      <template x-for="(v,i) in pageVersions" :key="i">
-        <div class="flex items-center gap-3 p-3 border dark:border-gray-700 rounded-lg">
-          <i class="fas fa-code-branch text-brand-400"></i>
-          <div class="flex-1"><p class="font-semibold text-sm" x-text="v.name"></p><p class="text-xs text-gray-400" x-text="new Date(v.date).toLocaleString()+' · '+v.components.length+' widgets'"></p></div>
-          <button @click="loadVersion(i)" class="px-3 py-1 bg-brand-500 text-white rounded text-xs hover:bg-brand-600">Load</button>
-          <button @click="pageVersions.splice(i,1);saveVersionsToStorage()" class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600">Del</button>
-        </div>
-      </template>
-    </div>
-  </div>
-</div>
-
 <!-- CONTEXT MENU -->
 <div x-show="contextMenu.show" x-cloak
   :style="`left:${contextMenu.x}px;top:${contextMenu.y}px`"
@@ -391,11 +367,6 @@ tailwind.config = {
     <!-- A11y Check -->
     <button @click="runA11yCheck();showA11yModal=true" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-sm" title="Accessibility Check">
       <i class="fas fa-universal-access"></i>
-    </button>
-
-    <!-- Versions -->
-    <button @click="showVersionsModal=true" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-sm" title="Page Versions">
-      <i class="fas fa-code-branch"></i>
     </button>
 
     <!-- Dark Mode -->
@@ -1129,7 +1100,10 @@ function pageBuilderV5() {
     contextMenu: { show: false, x: 0, y: 0, widgetId: null },
 
     // SEO
-    seoData: { title: 'My Page', meta: '' },
+    seoData: {
+      title: @json($page->title ?? 'My Page'),
+      meta: @json($page->meta_description ?? ''),
+    },
 
     // Global Styles
     globalStyles: {
@@ -1243,10 +1217,13 @@ function pageBuilderV5() {
       this.darkMode = localStorage.getItem('builder_dark') === 'true';
       this.snapGrid = localStorage.getItem('builder_snap') === 'true';
       this.injectTemplateWidgets();
-      this.loadFromStorage();
+      if (initialPageData) {
+        this.loadInitialPageData();
+      } else {
+        this.loadFromStorage();
+      }
       this.loadTemplates();
       this.loadRevisions();
-      this.loadVersions();
 
       // Auto-save every 30 seconds
       setInterval(() => this.autoSave(), 30000);
@@ -1265,16 +1242,34 @@ function pageBuilderV5() {
         return;
       }
 
-      const headerWidgets = this.availableHeaderTemplates.map((template) => ({
-        type: 'header-template',
-        label: `Header: ${template.name}`,
-        icon: 'fa-window-maximize',
-        templateType: 'header',
-        templateId: template.id,
-        templateName: template.name,
-        templateContent: template.content,
-        isDefault: !!template.is_default,
-      }));
+      const defaultHeader = this.availableHeaderTemplates.find((template) => template.is_default);
+      const headerWidgets = [];
+
+      if (defaultHeader) {
+        headerWidgets.push({
+          type: 'header-template',
+          label: `Default Header: ${defaultHeader.name}`,
+          icon: 'fa-window-maximize',
+          templateType: 'header',
+          templateId: defaultHeader.id,
+          templateName: defaultHeader.name,
+          templateContent: defaultHeader.content,
+          isDefault: true,
+        });
+      }
+
+      headerWidgets.push(...this.availableHeaderTemplates
+        .filter((template) => !template.is_default)
+        .map((template) => ({
+          type: 'header-template',
+          label: `Header: ${template.name}`,
+          icon: 'fa-window-maximize',
+          templateType: 'header',
+          templateId: template.id,
+          templateName: template.name,
+          templateContent: template.content,
+          isDefault: false,
+        })));
 
       const footerWidgets = this.availableFooterTemplates.map((template) => ({
         type: 'footer-template',
@@ -2609,20 +2604,22 @@ function pageBuilderV5() {
     },
 
     loadFromStorage() {
-      if (this.isNewPage) {
-        localStorage.removeItem('cms_page_data');
-        return;
-      }
+      if (!this.isNewPage) return;
+      localStorage.removeItem('cms_page_data');
+    },
 
+    loadInitialPageData() {
+      if (!initialPageData) return;
       try {
-        const raw = localStorage.getItem('cms_page_data');
-        if (raw) {
-          const data = JSON.parse(raw);
-          this.components = data.components || [];
-          if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
-          if (data.seoData) this.seoData = { ...this.seoData, ...data.seoData };
-        }
-      } catch(e) {}
+        const data = typeof initialPageData === 'string' ? JSON.parse(initialPageData) : initialPageData;
+        this.components = data.components || [];
+        if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
+        if (data.seoData) this.seoData = { ...this.seoData, ...data.seoData };
+        if (data.title) this.seoData.title = data.title;
+        if (data.meta_description) this.seoData.meta = data.meta_description;
+      } catch (e) {
+        console.warn('Failed to load initial page data:', e);
+      }
     },
 
     autoSave() {

@@ -82,18 +82,30 @@
                             </a>
                         @endif
                         
-                        <!-- Headers - Disabled until Phase 2 (WS-1) -->
+                        <!-- Headers (conditionally enabled via config/features.php) -->
                         @if (auth()->user()?->hasPermission('admin.access'))
-                            <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Headers feature coming in Phase 2 update', 'info'); return false;">
-                                <i class="fas fa-arrow-up w-4 mr-2 text-gray-400"></i> Headers (Soon)
-                            </a>
+                            @if (config('features.header_templates'))
+                                <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.headers.index') }}">
+                                    <i class="fas fa-arrow-up w-4 mr-2 text-gray-400"></i> Headers
+                                </a>
+                            @else
+                                <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Headers feature coming in Phase 2 update', 'info'); return false;">
+                                    <i class="fas fa-arrow-up w-4 mr-2 text-gray-400"></i> Headers (Soon)
+                                </a>
+                            @endif
                         @endif
                         
-                        <!-- Footers - Disabled until Phase 2 (WS-1) -->
+                        <!-- Footers (conditionally enabled via config/features.php) -->
                         @if (auth()->user()?->hasPermission('admin.access'))
-                            <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Footers feature coming in Phase 2 update', 'info'); return false;">
-                                <i class="fas fa-arrow-down w-4 mr-2 text-gray-400"></i> Footers (Soon)
-                            </a>
+                            @if (config('features.footer_templates'))
+                                <a class="block rounded px-3 py-2 hover:bg-gray-100" href="{{ route('admin.footers.index') }}">
+                                    <i class="fas fa-arrow-down w-4 mr-2 text-gray-400"></i> Footers
+                                </a>
+                            @else
+                                <a class="block rounded px-3 py-2 opacity-50 cursor-not-allowed bg-gray-50" href="#" onclick="showToast('Footers feature coming in Phase 2 update', 'info'); return false;">
+                                    <i class="fas fa-arrow-down w-4 mr-2 text-gray-400"></i> Footers (Soon)
+                                </a>
+                            @endif
                         @endif
                     </div>
 

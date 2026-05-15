@@ -40,7 +40,7 @@
                         </td>
                         <td class="px-3 py-2 text-gray-600">{{ $page->user->name ?? '-' }}</td>
                         <td class="px-3 py-2 text-right">
-                            <a href="{{ route('admin.pages.create') }}?edit={{ $page->id }}" class="text-blue-600 hover:text-blue-700">Edit</a>
+                            <a href="{{ route('admin.pages.edit', $page) }}" class="text-blue-600 hover:text-blue-700">Edit</a>
                             <form action="{{ route('admin.pages.destroy', $page) }}" method="POST" class="ml-3 inline" onsubmit="return confirm('Delete this page?')">
                                 @csrf
                                 @method('DELETE')

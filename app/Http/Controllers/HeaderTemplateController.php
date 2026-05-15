@@ -23,7 +23,7 @@ class HeaderTemplateController extends Controller
 
     public function create(): View
     {
-        return view('admin.headers.edit', [
+        return view('admin.headers.create', [
             'header' => null,
             'availableMenus' => Menu::orderBy('name')->get(['id', 'name']),
         ]);

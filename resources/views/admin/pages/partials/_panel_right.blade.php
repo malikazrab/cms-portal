@@ -42,7 +42,7 @@
 
     {{-- Nothing selected: page-level heading --}}
     <template x-if="!selectedWidget()">
-      <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">Page Settings & SEO</p>
+      <p class="text-sm font-semibold text-gray-600 dark:text-gray-400" x-text="builderMode === 'header' ? 'Header Settings' : 'Page Settings & SEO'"></p>
     </template>
 
   </div>
@@ -81,24 +81,24 @@
           <h4 class="font-bold text-xs text-gray-500 uppercase tracking-wide mb-2">SEO Analysis</h4>
           <div class="space-y-2">
 
-            {{-- Page Title --}}
+            {{-- Page Title / Header Name --}}
             <div>
               <label class="text-xs text-gray-600 dark:text-gray-400 flex justify-between mb-1">
-                <span>Page Title</span>
+                <span x-text="builderMode === 'header' ? 'Header Name' : 'Page Title'"></span>
                 <span
-                  :class="seoData.title.length > 60 ? 'text-red-500' : seoData.title.length > 30 ? 'text-green-500' : 'text-yellow-500'"
-                  x-text="seoData.title.length + '/60'">
+                  :class="(builderMode === 'header' ? headerName.length : seoData.title.length) > 60 ? 'text-red-500' : (builderMode === 'header' ? headerName.length : seoData.title.length) > 30 ? 'text-green-500' : 'text-yellow-500'"
+                  x-text="(builderMode === 'header' ? headerName.length : seoData.title.length) + '/60'">
                 </span>
               </label>
               <input
-                x-model="seoData.title"
+                x-model="builderMode === 'header' ? headerName : seoData.title"
                 type="text"
                 class="w-full border dark:border-gray-600 rounded px-2 py-1.5 text-xs dark:bg-gray-800">
               <div class="mt-1 h-1 bg-gray-100 dark:bg-gray-700 rounded">
                 <div
                   class="h-full rounded transition-all"
-                  :class="seoData.title.length > 60 ? 'bg-red-500' : seoData.title.length > 30 ? 'bg-green-500' : 'bg-yellow-500'"
-                  :style="`width:${Math.min(100,(seoData.title.length/60)*100)}%`">
+                  :class="(builderMode === 'header' ? headerName.length : seoData.title.length) > 60 ? 'bg-red-500' : (builderMode === 'header' ? headerName.length : seoData.title.length) > 30 ? 'bg-green-500' : 'bg-yellow-500'"
+                  :style="`width:${Math.min(100,((builderMode === 'header' ? headerName.length : seoData.title.length)/60)*100)}%`">
                 </div>
               </div>
             </div>
