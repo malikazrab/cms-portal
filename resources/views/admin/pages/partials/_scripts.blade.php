@@ -2117,6 +2117,10 @@ function pageBuilderV5(mode = 'page', initialHeader = null, availableMenus = [])
 
     loadFromStorage() {
       try {
+        // Skip localStorage for header create mode to avoid stale page builder state
+        if (typeof _HEADER_CREATE_MODE !== 'undefined' && _HEADER_CREATE_MODE) {
+          return;
+        }
         const raw = localStorage.getItem('cms_page_data');
         if (raw) {
           const data = JSON.parse(raw);
@@ -2284,6 +2288,10 @@ function pageBuilderV5(mode = 'page', initialHeader = null, availableMenus = [])
       this.showVersionsModal = false;
       this.markDirty();
       this.showToast('Version loaded!', 'success');
+      // Reopen modal to show updated active version after load
+      this.$nextTick(() => {
+        setTimeout(() => this.showVersionsModal = true, 100);
+      });
     },
 
     loadVersions()         { try { this.pageVersions = JSON.parse(localStorage.getItem('cms_versions') || '[]'); } catch(e) {} },

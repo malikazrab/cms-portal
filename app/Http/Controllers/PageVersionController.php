@@ -13,6 +13,7 @@ class PageVersionController extends Controller
     public function versions($id)
     {
         $page = Page::findOrFail($id);
+        $this->authorize('view', $page);
         
         // Check if this is an AJAX request
         if (request()->expectsJson() || request()->header('Accept') === 'application/json') {
@@ -35,6 +36,7 @@ class PageVersionController extends Controller
     public function show($id, $vid)
     {
         $page = Page::findOrFail($id);
+        $this->authorize('view', $page);
         
         $version = $page->versions()
             ->where('id', $vid)
@@ -56,6 +58,7 @@ class PageVersionController extends Controller
     public function restore($id, $vid)
     {
         $page = Page::findOrFail($id);
+        $this->authorize('update', $page);
         
         $version = $page->versions()
             ->where('id', $vid)
@@ -64,14 +67,22 @@ class PageVersionController extends Controller
         // Current content save kar lo (backup)
         $this->createVersionSnapshot($page, 'Before restore from version #' . $version->version_number);
         
-        // Restore old content
-        $page->content = $version->content;
-        $page->save();
+        $restoredContent = is_array($version->content) ? $version->content : [];
+
+        $page->update([
+            'title' => $restoredContent['title'] ?? $page->title,
+            'slug' => $restoredContent['slug'] ?? $page->slug,
+            'content' => $restoredContent['content'] ?? $page->content,
+            'status' => $restoredContent['status'] ?? $page->status,
+            'template' => $restoredContent['template'] ?? $page->template,
+            'meta_title' => $restoredContent['meta_title'] ?? $page->meta_title,
+            'meta_description' => $restoredContent['meta_description'] ?? $page->meta_description,
+        ]);
         
         return response()->json([
             'success' => true,
             'message' => 'Page restored successfully',
-            'data' => $page->content
+            'data' => $restoredContent
         ]);
     }
     
@@ -82,7 +93,15 @@ class PageVersionController extends Controller
         
         PageVersion::create([
             'page_id' => $page->id,
-            'content' => $page->content,
+            'content' => [
+                'title' => $page->title,
+                'slug' => $page->slug,
+                'content' => $page->content,
+                'status' => $page->status,
+                'template' => $page->template,
+                'meta_title' => $page->meta_title,
+                'meta_description' => $page->meta_description,
+            ],
             'version_number' => $latestVersion + 1,
             'saved_by' => Auth::id(),
             'change_note' => $note ?? 'Auto-saved before restore'

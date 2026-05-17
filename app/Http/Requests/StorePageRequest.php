@@ -29,12 +29,12 @@ class StorePageRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required'  => 'Title zaroori hai.',
-            'title.unique'    => 'A page with this title already exists. Change the page name.',
-            'slug.required'   => 'Slug zaroori hai.',
-            'slug.unique'     => 'A page with this title already exists. Change the page name.',
-            'status.required' => 'Status select karein.',
-            'status.in'       => 'Status sirf draft ya published ho sakta hai.',
+            'title.required' => 'A page title is required.',
+            'title.unique' => 'A page with this title already exists. Please choose a different title.',
+            'slug.required' => 'A page slug is required.',
+            'slug.unique' => 'A page with this slug already exists. Please choose a different slug.',
+            'status.required' => 'Please select a page status.',
+            'status.in' => 'The page status must be either draft or published.',
         ];
     }
 }

@@ -12,6 +12,11 @@ use App\Services\ActivityLogger;
 
 class PageController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Page::class, 'page');
+    }
+
     public function index()
     {
         $pages = Page::with('user')->orderBy('created_at', 'desc')->paginate(15);
@@ -26,12 +31,15 @@ class PageController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Page::class);
+
         $page = null;
         $editMode = false;
 
         // Check if we're editing an existing page
         if (request()->has('edit') && request()->edit) {
             $page = Page::findOrFail(request()->edit);
+            $this->authorize('update', $page);
             $editMode = true;
         }
 

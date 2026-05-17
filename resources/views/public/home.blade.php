@@ -22,10 +22,14 @@
         @if (!empty($pages) && $pages->isNotEmpty())
             <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($pages as $page)
-                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-                        <h2 class="text-xl font-semibold text-slate-900">{{ $page->title }}</h2>
-                        <div class="mt-4 text-sm text-slate-600">
-                            <a href="{{ route('public.page', $page->slug) }}" class="font-medium text-slate-900 hover:text-slate-700">Open page</a>
+                    <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex flex-col h-full">
+                        <h2 class="text-xl font-semibold text-slate-900 line-clamp-2">{{ $page->title }}</h2>
+                        <div class="mt-4 text-sm text-slate-600 flex-1">
+                            @if($page->slug)
+                                <a href="{{ route('public.page', $page->slug) }}" class="font-medium text-slate-900 hover:text-slate-700 pointer-events-auto inline-block">Open page</a>
+                            @else
+                                <span class="font-medium text-slate-400 cursor-not-allowed" title="Page slug is not set">Page not available</span>
+                            @endif
                         </div>
                     </article>
                 @endforeach

@@ -46,6 +46,9 @@ class User extends Authenticatable
             'categories.view',
             'categories.create',
             'activity.view',
+            'menus.manage',
+            'headers.manage',
+            'footers.manage',
         ],
         self::ROLE_POST_EDITOR => [
             'admin.access',
@@ -69,6 +72,9 @@ class User extends Authenticatable
             'media.view',
             'media.upload',
             'media.delete',
+            'menus.manage',
+            'headers.manage',
+            'footers.manage',
         ],
     ];
 
@@ -81,6 +87,7 @@ class User extends Authenticatable
         self::ROLE_PAGE_EDITOR => [
             'Pages' => ['pages.view', 'pages.create', 'pages.update', 'pages.delete'],
             'Media' => ['media.view', 'media.upload', 'media.delete'],
+            'Structure' => ['menus.manage', 'headers.manage', 'footers.manage'],
         ],
     ];
 
@@ -210,6 +217,9 @@ class User extends Authenticatable
             'settings.manage' => 'Manage Settings',
             'users.manage' => 'Manage Users',
             'activity.view' => 'View Activity Logs',
+            'menus.manage' => 'Manage Menus',
+            'headers.manage' => 'Manage Header Templates',
+            'footers.manage' => 'Manage Footer Templates',
         ];
     }
 

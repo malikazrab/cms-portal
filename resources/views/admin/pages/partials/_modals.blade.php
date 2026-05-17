@@ -410,16 +410,21 @@
         <p class="text-center text-gray-400 py-8">No versions saved yet</p>
       </template>
       <template x-for="(v, i) in pageVersions" :key="i">
-        <div class="flex items-center gap-3 p-3 border dark:border-gray-700 rounded-lg">
-          <i class="fas fa-code-branch text-brand-400"></i>
+        <div class="flex items-center gap-3 p-3 border dark:border-gray-700 rounded-lg transition-colors" 
+          :class="i === 0 ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : ''">
+          <i class="fas fa-code-branch" :class="i === 0 ? 'text-green-500' : 'text-brand-400'"></i>
           <div class="flex-1">
             <p class="font-semibold text-sm" x-text="v.name"></p>
-            <p class="text-xs text-gray-400"
-              x-text="new Date(v.date).toLocaleString() + ' · ' + v.components.length + ' widgets'">
-            </p>
+            <div class="flex items-center gap-2">
+              <p class="text-xs text-gray-400"
+                x-text="new Date(v.date).toLocaleString() + ' · ' + v.components.length + ' widgets'">
+              </p>
+              <span x-show="i === 0" class="text-xs px-2 py-0.5 rounded bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200 font-medium">Current</span>
+            </div>
           </div>
           <button @click="loadVersion(i)"
-            class="px-3 py-1 bg-brand-500 text-white rounded text-xs hover:bg-brand-600">
+            class="px-3 py-1 bg-brand-500 text-white rounded text-xs hover:bg-brand-600"
+            :disabled="i === 0">
             Load
           </button>
           <button @click="pageVersions.splice(i, 1); saveVersionsToStorage()"

@@ -315,6 +315,32 @@ tailwind.config = {
 <!-- MAIN LAYOUT -->
 <div class="flex flex-col h-full">
 
+  <!-- METADATA FORM (for new page creation) -->
+  <div x-show="isNewPage" x-cloak class="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border-b dark:border-blue-800 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Page Title</label>
+      <input x-model="seoData.title" placeholder="Enter page title..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-brand-500" @input="markDirty()">
+    </div>
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Slug</label>
+      <input x-model="pageSlug" placeholder="auto-generated-slug..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-brand-500" @input="markDirty()">
+    </div>
+    <div class="flex gap-2">
+      <div class="flex-1">
+        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+        <select x-model="pageStatus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-brand-500" @change="markDirty()">
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button @click="savePage()" class="px-3 py-2 bg-brand-500 text-white rounded-lg text-xs font-medium hover:bg-brand-600 whitespace-nowrap">
+          <i class="fas fa-save mr-1"></i>Save
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP BAR -->
   <header class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-900 border-b dark:border-gray-700 shadow-sm flex-shrink-0 z-50">
     <!-- Logo -->
@@ -1060,6 +1086,11 @@ function pageBuilderV5() {
     autoSaveIndicator: false,
     dragWidget: null,
     clipboard: null,
+
+    // Metadata state (for create view)
+    pageSlug: '',
+    pageStatus: 'draft',
+    pageTemplate: null,
 
     // Modals
     showMediaLibrary: false,
@@ -2566,9 +2597,10 @@ function pageBuilderV5() {
         },
         body: JSON.stringify({
           title: this.seoData.title || 'Untitled Page',
-          slug: (this.seoData.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+          slug: this.pageSlug?.trim() || (this.seoData.title || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
           content: JSON.stringify(data),
-          status: status || 'draft',
+          status: this.pageStatus || status || 'draft',
+          template: this.pageTemplate || null,
           meta_title: this.seoData.title,
           meta_description: this.seoData.meta,
         })
@@ -2616,6 +2648,9 @@ function pageBuilderV5() {
         if (data.globalStyles) this.globalStyles = { ...this.globalStyles, ...data.globalStyles };
         if (data.seoData) this.seoData = { ...this.seoData, ...data.seoData };
         if (data.title) this.seoData.title = data.title;
+        if (data.slug) this.pageSlug = data.slug;
+        if (data.status) this.pageStatus = data.status;
+        if (data.template) this.pageTemplate = data.template;
         if (data.meta_description) this.seoData.meta = data.meta_description;
       } catch (e) {
         console.warn('Failed to load initial page data:', e);

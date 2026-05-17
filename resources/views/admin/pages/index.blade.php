@@ -36,7 +36,9 @@
                             <span class="rounded px-2 py-1 text-xs font-medium {{ $page->status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' }}">{{ ucfirst($page->status) }}</span>
                         </td>
                         <td class="px-3 py-2 text-sm text-gray-600">
-                            <span class="font-medium">v{{ $page->latest_version }}</span>
+                            <a href="{{ route('admin.pages.versions', $page) }}" class="font-medium text-blue-600 hover:text-blue-700">
+                                v{{ $page->latest_version }}
+                            </a>
                         </td>
                         <td class="px-3 py-2 text-gray-600">{{ $page->user->name ?? '-' }}</td>
                         <td class="px-3 py-2 text-right">

@@ -24,7 +24,7 @@
                 <template x-for="version in versions" :key="version.id">
                     <tr class="hover:bg-gray-50">
                         <td class="p-3 text-sm" x-text="'v' + version.version_number"></td>
-                        <td class="p-3 text-sm" x-text="version.saved_by?.name || 'Unknown'"></td>
+                        <td class="p-3 text-sm" x-text="version.user?.name || 'Unknown'"></td>
                         <td class="p-3 text-sm" x-text="new Date(version.created_at).toLocaleString()"></td>
                         <td class="p-3 text-sm text-gray-500" x-text="version.change_note || '—'"></td>
                         <td class="p-3 text-sm space-x-2">
@@ -74,7 +74,11 @@
             
             async loadVersions() {
                 try {
-                    const response = await fetch(`/admin/pages/${pageId}/versions`);
+                    const response = await fetch(`/admin/pages/${pageId}/versions`, {
+                        headers: {
+                            'Accept': 'application/json',
+                        }
+                    });
                     if (!response.ok) throw new Error('Failed to load versions');
                     const data = await response.json();
                     this.versions = data.versions || data.data || [];

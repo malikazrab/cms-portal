@@ -55,6 +55,6 @@ class RegisteredUserController extends Controller
             user: $user
         );
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('admin.dashboard', absolute: false));
     }
 }

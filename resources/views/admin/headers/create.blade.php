@@ -36,6 +36,8 @@
     const initialMenus = @json($availableMenus ?? []);
     // mark this builder instance as a header builder so we can override save behavior
     const _BUILDER_MODE = 'header';
+    // For header create, ensure we start with empty components
+    const _HEADER_CREATE_MODE = !initialHeader; // true if creating new header
   </script>
 
   {{-- Page builder core scripts (renders widgets, panels, save/load, etc.) --}}

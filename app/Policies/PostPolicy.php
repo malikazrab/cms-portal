@@ -9,11 +9,11 @@ class PostPolicy
 {
     public function update(User $user, Post $post)
     {
-        return $user->role === User::ROLE_ADMIN || $user->id === $post->user_id;
+        return $user->hasPermission('posts.update') || $user->id === $post->user_id;
     }
 
     public function delete(User $user, Post $post)
     {
-        return $user->role === User::ROLE_ADMIN || $user->id === $post->user_id;
+        return $user->hasPermission('posts.delete') || $user->id === $post->user_id;
     }
 }

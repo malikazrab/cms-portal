@@ -14,38 +14,63 @@ class DefaultTemplateSeeder extends Seeder
      */
     public function run(): void
     {
-        // Check if is_default column exists before using it
-        if (!Schema::hasColumn('header_templates', 'is_default')) {
-            $this->command->warn('is_default column missing. Run WS-1 migration first.');
+        if (!Schema::hasTable('header_footer_templates')) {
+            $this->command?->warn('header_footer_templates table is missing. Run the template migrations first.');
             return;
         }
 
-        // Create default header if none exists with is_default = true
+        if (!Schema::hasColumns('header_footer_templates', ['content', 'is_default', 'created_by', 'type'])) {
+            $this->command?->warn('header_footer_templates is missing required columns. Run the latest migrations first.');
+            return;
+        }
+
+        $systemUserId = \App\Models\User::query()->value('id');
+
+        if (!$systemUserId) {
+            $this->command?->warn('No users exist yet. Seed a user before creating default templates.');
+            return;
+        }
+
         if (!HeaderTemplate::where('is_default', true)->exists()) {
             HeaderTemplate::create([
                 'name' => 'Default Header',
-                'html' => '<header class="bg-white shadow-sm"><div class="container mx-auto px-4 py-4">{!! menu_slot("primary") !!}</div></header>',
-                'css' => '',
-                'js' => '',
-                'menu_slots' => json_encode(['primary' => null]),
+                'content' => [
+                    'widgets' => [],
+                    'settings' => [
+                        'backgroundColor' => '#ffffff',
+                        'containerWidth' => 'full',
+                        'paddingTop' => 10,
+                        'paddingBottom' => 10,
+                        'paddingLeft' => 20,
+                        'paddingRight' => 20,
+                    ],
+                    'globalStyles' => [],
+                ],
                 'is_default' => true,
-                'is_active' => true,
+                'created_by' => $systemUserId,
             ]);
-            $this->command->info('Created default header template.');
+            $this->command?->info('Created default header template.');
         }
 
-        // Create default footer if none exists with is_default = true
         if (!FooterTemplate::where('is_default', true)->exists()) {
             FooterTemplate::create([
                 'name' => 'Default Footer',
-                'html' => '<footer class="bg-gray-100 mt-auto"><div class="container mx-auto px-4 py-6"><p class="text-center text-gray-600">&copy; {{ date("Y") }} CMS Portal. All rights reserved.</p></div></footer>',
-                'css' => '',
-                'js' => '',
-                'menu_slots' => json_encode([]),
+                'content' => [
+                    'widgets' => [],
+                    'settings' => [
+                        'backgroundColor' => '#f3f4f6',
+                        'containerWidth' => 'full',
+                        'paddingTop' => 24,
+                        'paddingBottom' => 24,
+                        'paddingLeft' => 20,
+                        'paddingRight' => 20,
+                    ],
+                    'globalStyles' => [],
+                ],
                 'is_default' => true,
-                'is_active' => true,
+                'created_by' => $systemUserId,
             ]);
-            $this->command->info('Created default footer template.');
+            $this->command?->info('Created default footer template.');
         }
     }
 }
